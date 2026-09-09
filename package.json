@@ -1,0 +1,12 @@
+{
+  "name": "chef-privado-by-franko",
+  "version": "1.0.0",
+  "description": "Chef4You by Franko Salgado - Chef Privado & Catering de Lujo",
+  "private": true,
+  "main": "start-server.js",
+  "scripts": {
+    "build": "node clean-and-optimize-html.js && node build-dist.js",
+    "start": "node start-server.js"
+  },
+  "dependencies": {}
+}
