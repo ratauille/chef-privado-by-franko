@@ -1,0 +1,48 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Verificación estricta de Custom Claim Admin
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Colección: reservations (Reservas creadas desde el widget web)
+    match /reservations/{reservationId} {
+      // El cliente público solo puede crear reservas si todos los tipos y formatos son válidos
+      allow create: if request.resource.data.keys().hasAll(['clientName', 'email', 'phone', 'date', 'guests'])
+                   && request.resource.data.clientName is string
+                   && request.resource.data.clientName.size() >= 2
+                   && request.resource.data.email is string
+                   && request.resource.data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
+                   && request.resource.data.phone is string
+                   && request.resource.data.phone.size() >= 8
+                   && request.resource.data.date is string
+                   && request.resource.data.date.size() >= 8
+                   && request.resource.data.guests is number
+                   && request.resource.data.guests > 0
+                   && request.resource.data.guests <= 100;
+      
+      // Lectura, actualización y eliminación restringidas exclusivamente a cuentas con el Custom Claim {admin: true}
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Colección: blockedDates (Fechas no disponibles sincronizadas con Google Calendar)
+    match /blockedDates/{dateId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Colección: services / menus (Catálogo de experiencias gastronómicas)
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Colección: mail (Utilizada por la extensión Trigger Email)
+    match /mail/{mailId} {
+      allow create, read, update, delete: if isAdmin();
+    }
+  }
+}
