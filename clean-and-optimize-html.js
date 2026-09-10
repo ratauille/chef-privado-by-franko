@@ -1,7 +1,11 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-function getCleanHtml(inputHtmlPath) {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export function getCleanHtml(inputHtmlPath) {
   const rootDir = __dirname;
   const htmlPath = inputHtmlPath || path.join(rootDir, 'Chef4You by Franko Salgado _ Chef Privado & Catering de Lujo en Puerto Vallarta y Riviera Nayarit.html');
   const filesDirName = 'Chef4You by Franko Salgado _ Chef Privado & Catering de Lujo en Puerto Vallarta y Riviera Nayarit_files';
@@ -36,10 +40,8 @@ function getCleanHtml(inputHtmlPath) {
   return html;
 }
 
-if (require.main === module) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   console.log('🧹 Probando sanitización de HTML en memoria...');
   const cleanHtml = getCleanHtml();
   console.log(`✅ HTML procesado correctamente (${cleanHtml.length} bytes). El archivo fuente NO fue sobreescrito.`);
 }
-
-module.exports = { getCleanHtml };

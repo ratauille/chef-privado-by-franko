@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
 
 const html = fs.readFileSync('dist/index.html', 'utf-8');
 const regex = /(?:src|href)=["']([^"']+)["']/g;
