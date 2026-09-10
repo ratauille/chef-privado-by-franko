@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { getCleanHtml } = require('./clean-and-optimize-html');
 
 const rootDir = __dirname;
 const distDir = path.join(rootDir, 'dist');
@@ -7,33 +8,34 @@ const htmlPath = path.join(rootDir, 'Chef4You by Franko Salgado _ Chef Privado &
 const adminHtmlPath = path.join(rootDir, 'admin.html');
 const filesDir = path.join(rootDir, 'Chef4You by Franko Salgado _ Chef Privado & Catering de Lujo en Puerto Vallarta y Riviera Nayarit_files');
 
-console.log('📦 Preparando directorio dist/ para Firebase Hosting...');
+console.log('📦 Limpiando y preparando directorio dist/ para Firebase Hosting...');
 
-// Create dist directory
-if (!fs.existsSync(distDir)) {
-  fs.mkdirSync(distDir, { recursive: true });
+// 1. Clean dist directory completely before build
+if (fs.existsSync(distDir)) {
+  fs.rmSync(distDir, { recursive: true, force: true });
 }
+fs.mkdirSync(distDir, { recursive: true });
 
-// 1. Copy main landing page as index.html
+// 2. Build sanitized main landing page as dist/index.html
 if (fs.existsSync(htmlPath)) {
-  fs.copyFileSync(htmlPath, path.join(distDir, 'index.html'));
-  console.log('  ✅ Copiado index.html');
+  const cleanHtml = getCleanHtml(htmlPath);
+  fs.writeFileSync(path.join(distDir, 'index.html'), cleanHtml, 'utf-8');
+  console.log('  ✅ Generado dist/index.html optimizado y limpio');
 }
 
-// 2. Copy Admin Panel as admin.html
+// 3. Copy Admin Panel as dist/admin.html and dist/admin/index.html
 if (fs.existsSync(adminHtmlPath)) {
   fs.copyFileSync(adminHtmlPath, path.join(distDir, 'admin.html'));
   
-  // Also create dist/admin/index.html for clean /admin routing
   const adminSubDir = path.join(distDir, 'admin');
   if (!fs.existsSync(adminSubDir)) {
     fs.mkdirSync(adminSubDir, { recursive: true });
   }
   fs.copyFileSync(adminHtmlPath, path.join(adminSubDir, 'index.html'));
-  console.log('  ✅ Copiado admin.html y admin/index.html');
+  console.log('  ✅ Copiado dist/admin.html y dist/admin/index.html');
 }
 
-// 3. Copy static assets to dist/_files and dist/assets
+// 4. Copy static assets to dist/_files, dist/assets, and create dist/assets/video directory
 function copyFolderRecursiveSync(source, target) {
   if (!fs.existsSync(target)) {
     fs.mkdirSync(target, { recursive: true });
@@ -58,4 +60,10 @@ if (fs.existsSync(filesDir)) {
   console.log('  ✅ Copiados recursos estáticos a _files/ y assets/');
 }
 
-console.log('🎉 Directorio dist/ compilado y listo para despliegue en Firebase Hosting!');
+// Ensure dist/assets/video exists so video references don't fail missing directory checks
+const videoDir = path.join(distDir, 'assets', 'video');
+if (!fs.existsSync(videoDir)) {
+  fs.mkdirSync(videoDir, { recursive: true });
+}
+
+console.log('🎉 Directorio dist/ compilado y listo de forma reproducible para Firebase Hosting!');
