@@ -50,10 +50,6 @@
         "function": "apiAssistantChat"
       },
       {
-        "source": "/admin**",
-        "destination": "/admin.html"
-      },
-      {
         "source": "**",
         "destination": "/index.html"
       }
