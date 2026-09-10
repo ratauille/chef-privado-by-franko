@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chef4You by Franko Salgado | Chef Privado & Catering de Lujo en Puerto Vallarta y Riviera Nayarit</title>
+    
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="ybASeiaEEgpYLS_fAArM0LgZF1kcVBSB-_zTgQLtljY" />
+
+    <!-- Google Fonts: Cormorant Garamond + Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Google reCAPTCHA Enterprise -->
+    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LdA2a8tAAAAAEmdWsjEs3KtOhxDHmYGWoxdKXp0"></script>
+
+    <!-- Google tag (gtag.js) - Google Analytics & Google Ads -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-X4T0SBCQVF"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18238345793"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      // GA4
+      gtag('config', 'G-X4T0SBCQVF');
+      // Google Ads
+      gtag('config', 'AW-18238345793');
+
+      window.trackGA4Event = function(eventName, params) {
+        if (typeof gtag === 'function') {
+          gtag('event', eventName, Object.assign({
+            send_to: ['G-X4T0SBCQVF', 'AW-18238345793']
+          }, params || {}));
+        }
+      };
+    </script>
+  </head>
+  <body class="bg-white text-stone-900 min-h-screen antialiased selection:bg-black selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
