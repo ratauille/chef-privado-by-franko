@@ -1,0 +1,41 @@
+env:
+  - variable: VITE_FIREBASE_API_KEY
+    value: "AIzaSyBEs6Ovs2zVbXWu22jMd687vhChWxdlVkM"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: VITE_FIREBASE_AUTH_DOMAIN
+    value: "chef-privado.firebaseapp.com"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: VITE_FIREBASE_PROJECT_ID
+    value: "chef-privado"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: VITE_FIREBASE_STORAGE_BUCKET
+    value: "chef-privado.firebasestorage.app"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: VITE_FIREBASE_MESSAGING_SENDER_ID
+    value: "697324356635"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: VITE_FIREBASE_APP_ID
+    value: "1:697324356635:web:6644a9a9332b37121324be"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: VITE_FIREBASE_MEASUREMENT_ID
+    value: "G-8HG2KGJPEB"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: VITE_RECAPTCHA_SITE_KEY
+    value: "6LdA2a8tAAAAAEmdWsjEs3KtOhxDHmYGWoxdKXp0"
+    availability:
+      - BUILD
+      - RUNTIME
