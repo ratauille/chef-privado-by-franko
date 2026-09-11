@@ -35,6 +35,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenQuote, onOpenAI }) => {
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-stone-600">
           <a href="#experiencias" className="hover:text-[#8c6a24] transition-colors">Experiencias</a>
+          <a href="#galeria" className="hover:text-[#8c6a24] transition-colors">Galería</a>
           <a href="#banner-servicios" className="hover:text-[#8c6a24] transition-colors">Servicios</a>
           <a href="#chef-franko" className="hover:text-[#8c6a24] transition-colors">Chef Franko</a>
           <a href="#testimonios" className="hover:text-[#8c6a24] transition-colors">Testimonios</a>
@@ -91,6 +92,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenQuote, onOpenAI }) => {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-stone-200 bg-white px-4 py-4 space-y-3">
           <a href="#experiencias" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-medium text-stone-700">Experiencias</a>
+          <a href="#galeria" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-medium text-stone-700">Galería</a>
           <a href="#banner-servicios" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-medium text-stone-700">Servicios</a>
           <a href="#chef-franko" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-medium text-stone-700">Chef Franko</a>
           <a href="#testimonios" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-medium text-stone-700">Testimonios</a>

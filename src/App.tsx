@@ -5,6 +5,7 @@ import { ServicesBanner } from './components/ServicesBanner';
 import { Experiences } from './components/Experiences';
 import { ChefBio } from './components/ChefBio';
 import { Testimonials } from './components/Testimonials';
+import { ArtGallery } from './components/ArtGallery';
 import { Footer } from './components/Footer';
 import { QuoteModal } from './components/QuoteModal';
 import { FrankoAIChatModal } from './components/FrankoAIChatModal';
@@ -38,6 +39,7 @@ export function App() {
         />
         <ServicesBanner onOpenQuote={() => setQuoteOpen(true)} />
         <Experiences onOpenQuote={() => setQuoteOpen(true)} />
+        <ArtGallery onOpenQuote={() => setQuoteOpen(true)} />
         <ChefBio />
         <Testimonials />
       </main>
