@@ -35,7 +35,7 @@ env:
       - BUILD
       - RUNTIME
   - variable: VITE_RECAPTCHA_SITE_KEY
-    value: "6Ld2Z7UtAAAAAE6z8Q9LVj1E19Ls7f0vJ5bxcxJ6"
+    value: "6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n"
     availability:
       - BUILD
       - RUNTIME

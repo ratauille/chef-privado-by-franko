@@ -24,7 +24,7 @@ export const auth = getAuth(app);
 
 // App Check singleton initialization wrapper
 export const initAppCheck = (recaptchaSiteKey?: string) => {
-  const siteKey = recaptchaSiteKey || import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6Ld2Z7UtAAAAAE6z8Q9LVj1E19Ls7f0vJ5bxcxJ6';
+  const siteKey = recaptchaSiteKey || import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n';
   
   if (import.meta.env.DEV || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
     // Enable App Check Debug Token in browser console for local development

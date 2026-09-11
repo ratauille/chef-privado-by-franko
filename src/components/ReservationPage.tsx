@@ -56,7 +56,7 @@ export const ReservationPage: React.FC = () => {
       let recaptchaToken = '';
       if (typeof window !== 'undefined' && (window as any).grecaptcha?.enterprise) {
         try {
-          recaptchaToken = await (window as any).grecaptcha.enterprise.execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY, { action: 'RESERVATION' });
+          recaptchaToken = await (window as any).grecaptcha.enterprise.execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n', { action: 'RESERVATION' });
         } catch (err) {
           console.warn('[reCAPTCHA Enterprise] Notice:', err);
         }
