@@ -7,6 +7,7 @@ interface QuoteModalProps {
 }
 
 export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
+  const today = new Date().toISOString().split('T')[0];
   const [formData, setFormData] = useState({
     clientName: '',
     email: '',
@@ -122,6 +123,8 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
                   <User className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
                   <input
                     type="text"
+                    name="clientName"
+                    autoComplete="name"
                     required
                     placeholder="Ej. Sarah Thompson"
                     value={formData.clientName}
@@ -138,6 +141,8 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
                     <Mail className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
                     <input
                       type="email"
+                      name="email"
+                      autoComplete="email"
                       required
                       placeholder="nombre@ejemplo.com"
                       value={formData.email}
@@ -153,6 +158,8 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
                     <Phone className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
                     <input
                       type="tel"
+                      name="phone"
+                      autoComplete="tel"
                       required
                       placeholder="+52 322 000 0000"
                       value={formData.phone}
@@ -170,6 +177,9 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
                     <Calendar className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
                     <input
                       type="date"
+                      name="eventDate"
+                      min={today}
+                      autoComplete="off"
                       required
                       value={formData.date}
                       onChange={e => setFormData({ ...formData, date: e.target.value })}
@@ -184,6 +194,8 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
                     <Users className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
                     <input
                       type="number"
+                      name="guests"
+                      inputMode="numeric"
                       min={1}
                       max={100}
                       required

@@ -18,13 +18,8 @@ const getHtmlPath = () => {
 };
 
 const getAdminPath = () => {
-  if (fs.existsSync(path.join(distDir, 'admin.html'))) {
-    return path.join(distDir, 'admin.html');
-  }
-  if (fs.existsSync(path.join(distDir, 'admin', 'index.html'))) {
-    return path.join(distDir, 'admin', 'index.html');
-  }
-  return path.join(rootDir, 'admin.html');
+  // /admin is rendered by the React SPA and switches to AdminDashboard.
+  return getHtmlPath();
 };
 
 const mimeTypes = {
