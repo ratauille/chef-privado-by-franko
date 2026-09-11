@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Utensils, Clock, Sparkles, Check, ChevronRight } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Utensils, Clock, Sparkles, Check, ChevronRight, ArrowRight } from 'lucide-react';
 
 interface ExperiencesProps {
-  onOpenQuote: () => void;
+  onOpenQuote?: () => void;
+  isFullView?: boolean;
 }
 
-interface MenuItem {
+export interface MenuItem {
   id: string;
   category: 'alta-cocina' | 'contemporanea' | 'degustacion' | 'bodas';
   badge: string;
@@ -55,7 +57,7 @@ const MENU_ITEMS: MenuItem[] = [
   {
     id: 'degustacion-5-tiempos',
     category: 'degustacion',
-    badge: 'Experiencia Exclusiva',
+    badge: 'Experiencia Exclusiva VIP',
     title: 'Cena Degustación de Autor 5 Tiempos',
     subtitle: 'Coral Tuile de Sepia, Cherry Confitado & Albahaca',
     image: '/assets/cena_degustacion_5_tiempos.png',
@@ -86,7 +88,7 @@ const MENU_ITEMS: MenuItem[] = [
   },
 ];
 
-export const Experiences: React.FC<ExperiencesProps> = ({ onOpenQuote }) => {
+export const Experiences: React.FC<ExperiencesProps> = ({ onOpenQuote, isFullView = false }) => {
   const [activeTab, setActiveTab] = useState<string>('todos');
 
   const filteredItems = activeTab === 'todos' 
@@ -94,27 +96,35 @@ export const Experiences: React.FC<ExperiencesProps> = ({ onOpenQuote }) => {
     : MENU_ITEMS.filter(item => item.category === activeTab);
 
   return (
-    <section id="experiencias" className="py-20 bg-white text-stone-900 border-b border-stone-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-stone-300 text-[#8c6a24] text-xs font-semibold uppercase tracking-wider">
-            <Utensils className="w-3.5 h-3.5" />
-            <span>Colección Gastronómica</span>
+    <section id="experiencias" className="py-24 bg-[#0d0d0d] text-stone-100 border-b border-stone-800/80 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(197,160,89,0.08),transparent_50%)] pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <motion.div
+          className="text-center max-w-3xl mx-auto space-y-4"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#181715] border border-[#c5a059]/40 text-[#d8b96d] text-xs font-semibold uppercase tracking-[0.2em]">
+            <Utensils className="w-3.5 h-3.5 text-[#c5a059]" />
+            <span>Colección Gastronómica de Autor</span>
           </div>
 
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-stone-900">
-            Experiencias & Menús de Autor
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-light tracking-tight text-white">
+            Experiencias & <span className="italic text-[#d8b96d]">Menús Diseñados a Medida</span>
           </h2>
 
-          <p className="text-stone-600 text-base sm:text-lg font-light">
-            Diseñados a la medida para tu villa, boda íntima o celebración especial en Puerto Vallarta, Punta Mita y Sayulita.
+          <p className="text-stone-400 text-base sm:text-lg font-light leading-relaxed">
+            Propuestas gastronómicas concebidas para tu villa, residencia privada o boda íntima en Puerto Vallarta, Punta Mita y Sayulita.
           </p>
-        </div>
+        </motion.div>
 
         {/* Filter Tabs */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
           {[
-            { id: 'todos', label: 'Todos' },
+            { id: 'todos', label: 'Todos los Menús' },
             { id: 'alta-cocina', label: 'Alta Cocina de Autor' },
             { id: 'contemporanea', label: 'Cocina Contemporánea' },
             { id: 'degustacion', label: 'Cena Degustación VIP' },
@@ -125,8 +135,8 @@ export const Experiences: React.FC<ExperiencesProps> = ({ onOpenQuote }) => {
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
                 activeTab === tab.id
-                  ? 'bg-black text-white font-semibold shadow-md'
-                  : 'bg-white text-stone-600 border border-stone-200 hover:text-stone-900 hover:bg-stone-50'
+                  ? 'bg-[#c5a059] text-stone-950 font-bold shadow-lg scale-105'
+                  : 'bg-[#181715] text-stone-400 border border-stone-800 hover:text-white hover:border-stone-600'
               }`}
             >
               {tab.label}
@@ -136,79 +146,107 @@ export const Experiences: React.FC<ExperiencesProps> = ({ onOpenQuote }) => {
 
         {/* Cards Grid */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
-          {filteredItems.map(item => (
-            <div
+          {filteredItems.map((item, idx) => (
+            <motion.div
               key={item.id}
-              className="bg-white rounded-2xl border border-stone-200 hover:border-stone-400 transition-all overflow-hidden flex flex-col group shadow-lg"
+              className="bg-[#141312] rounded-3xl border border-stone-800/90 hover:border-[#c5a059]/50 transition-all duration-500 overflow-hidden flex flex-col group shadow-xl"
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
             >
-              <div className="relative h-64 overflow-hidden">
+              <div className="relative h-72 overflow-hidden">
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-90 group-hover:brightness-100"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-white/85 via-white/15 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#141312] via-transparent to-transparent"></div>
 
-                <span className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black text-white font-bold text-xs shadow-md">
+                <span className="absolute top-4 left-4 px-3.5 py-1 rounded-full bg-stone-950/90 border border-[#c5a059]/40 text-[#d8b96d] font-semibold text-xs shadow-md">
                   {item.badge}
                 </span>
 
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-stone-900">
-                  <span className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-lg border border-stone-200 shadow-sm font-semibold">
-                    <Clock className="w-3.5 h-3.5 text-[#8c6a24]" />
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-stone-200">
+                  <span className="flex items-center gap-1.5 bg-stone-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-stone-800 shadow-sm font-semibold">
+                    <Clock className="w-3.5 h-3.5 text-[#c5a059]" />
                     {item.duration}
                   </span>
-                  <span className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-lg border border-stone-200 shadow-sm font-semibold">
-                    <Sparkles className="w-3.5 h-3.5 text-[#8c6a24]" />
+                  <span className="flex items-center gap-1.5 bg-stone-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-stone-800 shadow-sm font-semibold">
+                    <Sparkles className="w-3.5 h-3.5 text-[#c5a059]" />
                     {item.courses}
                   </span>
                 </div>
               </div>
 
-              <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+              <div className="p-8 flex-1 flex flex-col justify-between space-y-6">
                 <div>
-                  <span className="text-[#8c6a24] text-xs font-mono uppercase tracking-wider font-semibold">
+                  <span className="text-[#c5a059] text-xs font-mono uppercase tracking-widest font-semibold block mb-1">
                     {item.subtitle}
                   </span>
-                  <h3 className="font-serif text-2xl font-bold text-stone-900 mt-1">
+                  <h3 className="font-serif text-2xl sm:text-3xl font-light text-white">
                     {item.title}
                   </h3>
-                  <p className="text-stone-600 text-sm mt-2 leading-relaxed">
+                  <p className="text-stone-400 text-sm mt-3 leading-relaxed font-light">
                     {item.description}
                   </p>
                 </div>
 
-                <div className="space-y-2 pt-2 border-t border-stone-200">
+                <div className="space-y-2.5 pt-4 border-t border-stone-800/80">
                   {item.highlights.map((h, i) => (
-                    <div key={i} className="flex items-start gap-2 text-xs text-stone-700">
-                      <Check className="w-4 h-4 text-[#8c6a24] shrink-0 mt-0.5" />
+                    <div key={i} className="flex items-start gap-2.5 text-xs text-stone-300">
+                      <Check className="w-4 h-4 text-[#c5a059] shrink-0 mt-0.5" />
                       <span>{h}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-4 border-t border-stone-200 flex items-center justify-between">
+                <div className="pt-6 border-t border-stone-800/80 flex items-center justify-between">
                   <div>
                     <span className="text-[10px] text-stone-500 uppercase tracking-widest block font-mono">
                       Estimado por comensal
                     </span>
-                    <span className="font-serif text-lg font-bold text-[#8c6a24]">
+                    <span className="font-serif text-xl font-semibold text-[#d8b96d]">
                       {item.priceRange}
                     </span>
                   </div>
 
-                  <button
-                    onClick={onOpenQuote}
-                    className="px-4 py-2 rounded-xl bg-black hover:bg-stone-800 text-white font-bold text-xs transition-colors flex items-center gap-1 shadow-sm"
+                  <a
+                    href="/reservar"
+                    onClick={(e) => {
+                      if (onOpenQuote) {
+                        e.preventDefault();
+                        onOpenQuote();
+                      }
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#c5a059] via-[#d8b96d] to-[#9e7c33] text-stone-950 font-bold text-xs shadow-md transition-all hover:brightness-110 flex items-center gap-1.5"
                   >
-                    <span>Cotizar</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+                    <span>Cotizar Experiencia</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </a>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
+
+        {!isFullView && (
+          <motion.div
+            className="mt-16 text-center"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            <a
+              href="/experiencias"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-stone-900 border border-stone-700 text-stone-200 hover:text-white text-xs font-semibold transition-colors"
+            >
+              <span>Explorar Todas las Experiencias</span>
+              <ArrowRight className="w-4 h-4 text-[#c5a059]" />
+            </a>
+          </motion.div>
+        )}
       </div>
     </section>
   );
