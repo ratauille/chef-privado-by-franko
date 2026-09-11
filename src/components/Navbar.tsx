@@ -9,6 +9,8 @@ interface NavbarProps {
   onNavigate?: (path: string) => void;
 }
 
+const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+
 export const Navbar: React.FC<NavbarProps> = ({ onOpenQuote, onOpenAI, currentPath = '/', onNavigate }) => {
   const [lang, setLang] = useState<'ES' | 'EN'>('ES');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -109,22 +111,26 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenQuote, onOpenAI, currentPa
             <span>{lang === 'ES' ? '🇲🇽 ES' : '🇺🇸 EN'}</span>
           </button>
 
-          <Show when="signed-out">
-            <SignInButton mode="modal">
-              <button className="hidden sm:inline-flex px-3 py-2 rounded-xl border border-stone-800 text-xs font-semibold text-stone-300 hover:border-[#c5a059] hover:text-[#d8b96d] transition-colors">
-                Iniciar sesión
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="hidden sm:inline-flex px-3 py-2 rounded-xl bg-[#1c1b18] border border-[#c5a059]/40 text-xs font-semibold text-[#d8b96d] hover:bg-[#252420] transition-colors">
-                Crear cuenta
-              </button>
-            </SignUpButton>
-          </Show>
+          {clerkEnabled && (
+            <>
+              <Show when="signed-out">
+                <SignInButton mode="modal">
+                  <button className="hidden sm:inline-flex px-3 py-2 rounded-xl border border-stone-800 text-xs font-semibold text-stone-300 hover:border-[#c5a059] hover:text-[#d8b96d] transition-colors">
+                    Iniciar sesión
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="hidden sm:inline-flex px-3 py-2 rounded-xl bg-[#1c1b18] border border-[#c5a059]/40 text-xs font-semibold text-[#d8b96d] hover:bg-[#252420] transition-colors">
+                    Crear cuenta
+                  </button>
+                </SignUpButton>
+              </Show>
 
-          <Show when="signed-in">
-            <UserButton />
-          </Show>
+              <Show when="signed-in">
+                <UserButton />
+              </Show>
+            </>
+          )}
 
           {/* Franko AI Button */}
           <button
