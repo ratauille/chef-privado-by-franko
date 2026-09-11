@@ -56,7 +56,7 @@ export const ReservationPage: React.FC = () => {
       let recaptchaToken = '';
       if (typeof window !== 'undefined' && (window as any).grecaptcha?.enterprise) {
         try {
-          recaptchaToken = await (window as any).grecaptcha.enterprise.execute('6Ld2Z7UtAAAAAE6z8Q9LVj1E19Ls7f0vJ5bxcxJ6', { action: 'RESERVATION' });
+          recaptchaToken = await (window as any).grecaptcha.enterprise.execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY, { action: 'RESERVATION' });
         } catch (err) {
           console.warn('[reCAPTCHA Enterprise] Notice:', err);
         }
@@ -67,6 +67,7 @@ export const ReservationPage: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
           ...(recaptchaToken ? { 'X-ReCaptcha-Token': recaptchaToken } : {}),
+          'X-ReCaptcha-Action': 'RESERVATION',
         },
         body: JSON.stringify(formData),
       });

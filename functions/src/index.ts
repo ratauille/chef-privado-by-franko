@@ -3,9 +3,34 @@ import * as admin from 'firebase-admin';
 import axios from 'axios';
 import { google } from 'googleapis';
 import { GoogleGenAI } from '@google/genai';
+import { v1 as recaptchaEnterprise } from '@google-cloud/recaptcha-enterprise';
 
 admin.initializeApp();
 const db = admin.firestore();
+const recaptchaClient = new recaptchaEnterprise.RecaptchaEnterpriseServiceClient();
+const recaptchaSiteKey = process.env.RECAPTCHA_SITE_KEY || '';
+const recaptchaProjectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || 'chef-privado';
+
+async function verifyRecaptchaToken(token: string, expectedAction: string): Promise<boolean> {
+  if (!token || !recaptchaSiteKey) return false;
+
+  const [assessment] = await recaptchaClient.createAssessment({
+    parent: `projects/${recaptchaProjectId}`,
+    assessment: {
+      event: {
+        token,
+        siteKey: recaptchaSiteKey,
+      },
+    },
+  });
+
+  const tokenProperties = assessment.tokenProperties;
+  const score = assessment.riskAnalysis?.score ?? 0;
+
+  return tokenProperties?.valid === true
+    && tokenProperties.action === expectedAction
+    && score >= 0.5;
+}
 
 /**
  * Helper: Sanitiza cadenas de texto para prevenir inyecciones HTML (XSS)
@@ -37,7 +62,7 @@ function setCorsHeaders(req: functions.https.Request, res: functions.Response) {
   } else {
     res.set('Access-Control-Allow-Origin', 'https://chef4youbyfranko.com');
   }
-  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Firebase-AppCheck');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Firebase-AppCheck, X-ReCaptcha-Token, X-ReCaptcha-Action');
   res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
 }
 
@@ -283,6 +308,14 @@ export const apiLead = functions.https.onRequest(async (req, res) => {
   }
 
   try {
+    const recaptchaToken = String(req.headers['x-recaptcha-token'] || '');
+    const recaptchaAction = String(req.headers['x-recaptcha-action'] || 'RESERVATION');
+
+    if (!(await verifyRecaptchaToken(recaptchaToken, recaptchaAction))) {
+      res.status(403).json({ error: 'No se pudo validar la protección antispam. Recarga la página e inténtalo de nuevo.' });
+      return;
+    }
+
     const validation = validateReservationPayload(req.body);
     if (!validation.valid) {
       res.status(400).json({ error: validation.error });

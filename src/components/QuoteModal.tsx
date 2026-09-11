@@ -53,7 +53,7 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
       let recaptchaToken = '';
       if (typeof window !== 'undefined' && (window as any).grecaptcha?.enterprise) {
         try {
-          recaptchaToken = await (window as any).grecaptcha.enterprise.execute('6Ld2Z7UtAAAAAE6z8Q9LVj1E19Ls7f0vJ5bxcxJ6', { action: 'LEAD' });
+          recaptchaToken = await (window as any).grecaptcha.enterprise.execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY, { action: 'LEAD' });
         } catch (err) {
           console.warn('[reCAPTCHA Enterprise] Notice:', err);
         }
@@ -64,6 +64,7 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
         headers: {
           'Content-Type': 'application/json',
           ...(recaptchaToken ? { 'X-ReCaptcha-Token': recaptchaToken } : {}),
+          'X-ReCaptcha-Action': 'LEAD',
         },
         body: JSON.stringify(formData),
       });
