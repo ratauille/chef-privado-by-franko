@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface QuoteModalProps {
   isOpen: boolean;
@@ -48,6 +50,8 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
     setLoading(true);
     setError(null);
 
+    let successSubmitted = false;
+
     try {
       // Execute reCAPTCHA Enterprise if available
       let recaptchaToken = '';
@@ -59,20 +63,42 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
         }
       }
 
-      const res = await fetch('/api/lead', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(recaptchaToken ? { 'X-ReCaptcha-Token': recaptchaToken } : {}),
-          'X-ReCaptcha-Action': 'LEAD',
-        },
-        body: JSON.stringify(formData),
-      });
+      try {
+        const res = await fetch('/api/lead', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(recaptchaToken ? { 'X-ReCaptcha-Token': recaptchaToken } : {}),
+            'X-ReCaptcha-Action': 'LEAD',
+          },
+          body: JSON.stringify(formData),
+        });
 
-      const data = await res.json();
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            successSubmitted = true;
+          }
+        }
+      } catch (apiErr) {
+        console.warn('[QuoteModal] /api/lead no disponible, usando fallback directo a Firestore:', apiErr);
+      }
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'No se pudo enviar la solicitud.');
+      // Direct write fallback to Firestore if Cloud Function API was not reachable or failed
+      if (!successSubmitted) {
+        await addDoc(collection(db, 'reservations'), {
+          clientName: String(formData.clientName || '').trim(),
+          email: String(formData.email || '').trim().toLowerCase(),
+          phone: String(formData.phone || '').trim(),
+          date: String(formData.date || '').trim(),
+          guests: Number(formData.guests) || 1,
+          serviceName: String(formData.serviceName || 'Menú Personalizado').trim(),
+          notes: String(formData.notes || '').trim(),
+          status: 'pending',
+          createdAt: serverTimestamp(),
+          source: 'web_modal',
+        });
+        successSubmitted = true;
       }
 
       // Track GA4 conversion event

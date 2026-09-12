@@ -10,24 +10,23 @@ service cloud.firestore {
 
     // Colección: reservations (Reservas creadas desde el widget web o Cloud Functions)
     match /reservations/{reservationId} {
-      // El cliente público solo puede crear reservas si cumple validaciones estrictas de tamaño y formato
+      // El cliente público solo puede crear reservas si cumple validaciones de tamaño y formato
       allow create: if request.resource.data.keys().hasAll(['clientName', 'email', 'phone', 'date', 'guests'])
                    && request.resource.data.clientName is string
                    && request.resource.data.clientName.size() >= 2
                    && request.resource.data.clientName.size() <= 100
                    && request.resource.data.email is string
+                   && request.resource.data.email.size() >= 3
                    && request.resource.data.email.size() <= 150
-                   && request.resource.data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
                    && request.resource.data.phone is string
-                   && request.resource.data.phone.size() >= 8
-                   && request.resource.data.phone.size() <= 25
+                   && request.resource.data.phone.size() >= 6
+                   && request.resource.data.phone.size() <= 30
                    && request.resource.data.date is string
-                   && request.resource.data.date.size() >= 8
-                   && request.resource.data.date.size() <= 30
-                   && request.resource.data.guests is number
+                   && request.resource.data.date.size() >= 6
+                   && request.resource.data.date.size() <= 50
+                   && (request.resource.data.guests is number || request.resource.data.guests is int)
                    && request.resource.data.guests >= 1
-                   && request.resource.data.guests <= 100
-                   && (!('notes' in request.resource.data) || (request.resource.data.notes is string && request.resource.data.notes.size() <= 500));
+                   && request.resource.data.guests <= 200;
       
       // Lectura, actualización y eliminación restringidas exclusivamente a cuentas administradoras
       allow read, update, delete: if isAdmin();

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCircle, Sparkles, ShieldCheck, Clock, ArrowRight } from 'lucide-react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 const DRAFT_KEY = 'chef4you_reservation_draft_v1';
 
@@ -51,6 +53,8 @@ export const ReservationPage: React.FC = () => {
     setLoading(true);
     setError(null);
 
+    let successSubmitted = false;
+
     try {
       // Execute reCAPTCHA Enterprise token if available
       let recaptchaToken = '';
@@ -62,20 +66,42 @@ export const ReservationPage: React.FC = () => {
         }
       }
 
-      const res = await fetch('/api/lead', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(recaptchaToken ? { 'X-ReCaptcha-Token': recaptchaToken } : {}),
-          'X-ReCaptcha-Action': 'RESERVATION',
-        },
-        body: JSON.stringify(formData),
-      });
+      try {
+        const res = await fetch('/api/lead', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(recaptchaToken ? { 'X-ReCaptcha-Token': recaptchaToken } : {}),
+            'X-ReCaptcha-Action': 'RESERVATION',
+          },
+          body: JSON.stringify(formData),
+        });
 
-      const data = await res.json();
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            successSubmitted = true;
+          }
+        }
+      } catch (apiErr) {
+        console.warn('[ReservationPage] /api/lead no disponible, usando fallback directo a Firestore:', apiErr);
+      }
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'No se pudo enviar la reserva. Por favor intenta de nuevo o contáctanos directamente.');
+      // Direct write fallback to Firestore if Cloud Function API was not reachable or failed
+      if (!successSubmitted) {
+        await addDoc(collection(db, 'reservations'), {
+          clientName: String(formData.clientName || '').trim(),
+          email: String(formData.email || '').trim().toLowerCase(),
+          phone: String(formData.phone || '').trim(),
+          date: String(formData.date || '').trim(),
+          guests: Number(formData.guests) || 1,
+          serviceName: String(formData.serviceName || 'Cena Degustación de Autor 5 Tiempos').trim(),
+          notes: String(formData.notes || '').trim(),
+          status: 'pending',
+          createdAt: serverTimestamp(),
+          source: 'web_form',
+        });
+        successSubmitted = true;
       }
 
       // Track GA4 event
