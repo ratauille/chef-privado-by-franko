@@ -39,6 +39,15 @@ export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, on
         body: JSON.stringify({ message: userText }),
       });
 
+      if (!res.ok) {
+        throw new Error(`Error en el servidor: ${res.status}`);
+      }
+
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('El servidor no devolvió JSON');
+      }
+
       const data = await res.json();
       const reply = data.reply || 'Gracias por tu mensaje. El Chef Franko Salgado se comunicará contigo directamente.';
 
