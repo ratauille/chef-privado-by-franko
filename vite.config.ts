@@ -16,7 +16,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
           clerk: ['@clerk/react'],
           firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
           motion: ['motion/react'],
