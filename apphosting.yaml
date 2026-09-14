@@ -1,6 +1,6 @@
 env:
   - variable: VITE_FIREBASE_API_KEY
-    value: "AIzaSyBEs6Ovs2zVbXWu22jMd687vhChWxdlVkM"
+    value: "AIzaSyD9tVah09y2Zh_tJQobgBwU4TrTjaFUPbM"
     availability:
       - BUILD
       - RUNTIME
@@ -25,12 +25,12 @@ env:
       - BUILD
       - RUNTIME
   - variable: VITE_FIREBASE_APP_ID
-    value: "1:697324356635:web:6644a9a9332b37121324be"
+    value: "1:697324356635:web:381e0c1e5f1dc94a1324be"
     availability:
       - BUILD
       - RUNTIME
   - variable: VITE_FIREBASE_MEASUREMENT_ID
-    value: "G-8HG2KGJPEB"
+    value: "G-8KSD33KG1G"
     availability:
       - BUILD
       - RUNTIME

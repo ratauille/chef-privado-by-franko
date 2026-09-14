@@ -4,12 +4,12 @@ import { execSync } from 'child_process';
 import axios from 'axios';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBEs6Ovs2zVbXWu22jMd687vhChWxdlVkM",
+  apiKey: "AIzaSyD9tVah09y2Zh_tJQobgBwU4TrTjaFUPbM",
   authDomain: "chef-privado.firebaseapp.com",
   projectId: "chef-privado",
   storageBucket: "chef-privado.firebasestorage.app",
   messagingSenderId: "697324356635",
-  appId: "1:697324356635:web:6644a9a9332b37121324be",
+  appId: "1:697324356635:web:381e0c1e5f1dc94a1324be",
 };
 
 // 1. Initialize Client App (Unauthenticated / Public Client)

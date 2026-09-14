@@ -118,7 +118,7 @@ export const AdminDashboard: React.FC = () => {
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#8c6a24] text-sm outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-stone-300 bg-white text-black caret-black placeholder-stone-400 focus:ring-2 focus:ring-[#8c6a24] text-sm outline-none"
               />
             </div>
 
@@ -130,7 +130,7 @@ export const AdminDashboard: React.FC = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-[#8c6a24] text-sm outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-stone-300 bg-white text-black caret-black placeholder-stone-400 focus:ring-2 focus:ring-[#8c6a24] text-sm outline-none"
               />
             </div>
 

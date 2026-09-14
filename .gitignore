@@ -29,6 +29,8 @@ ui-debug.log
 
 # IDE & System
 .DS_Store
+.agents/
+skills-lock.json
 .vscode/
 .idea/
 *.suo
