@@ -5,6 +5,8 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 const DRAFT_KEY = 'chef4you_reservation_draft_v1';
+const SMS_REMINDER_BOOKING_URL = 'https://www.smsreminder.co/book/tiVbGssvDw6CtX6t/franko-salgado?utm_source=inline-button-embed&utm_medium=embed';
+const SMS_REMINDER_SCRIPT_ID = 'smsreminder-inline-button-script';
 
 export const ReservationPage: React.FC = () => {
   const today = new Date().toISOString().split('T')[0];
@@ -43,6 +45,16 @@ export const ReservationPage: React.FC = () => {
       }
     }
   }, [formData, success]);
+
+  useEffect(() => {
+    if (document.getElementById(SMS_REMINDER_SCRIPT_ID)) return;
+
+    const script = document.createElement('script');
+    script.id = SMS_REMINDER_SCRIPT_ID;
+    script.async = true;
+    script.src = 'https://www.smsreminder.co/embed/inline-button.js';
+    document.body.appendChild(script);
+  }, []);
 
   const handleChange = (field: string, value: any) => {
     setFormData((prev: any) => ({ ...prev, [field]: value }));
@@ -149,6 +161,25 @@ export const ReservationPage: React.FC = () => {
           <p className="text-stone-400 text-base sm:text-lg max-w-xl mx-auto font-light">
             Consulta disponibilidad para tu villa, casa de playa o evento privado en Puerto Vallarta, Punta Mita y Sayulita.
           </p>
+
+          <div className="pt-2 flex flex-col items-center gap-2">
+            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">¿Ya tienes fecha y horario?</span>
+            <a
+              href={SMS_REMINDER_BOOKING_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-bwm
+              data-bwm-label="Book Now"
+              data-bwm-color="#5777da"
+              data-bwm-text-color="#c9baba"
+              data-bwm-size="normal"
+              data-bwm-position="centered"
+              aria-label="Abrir calendario de reservas"
+            >
+              Book Now
+            </a>
+            <span className="text-[11px] text-stone-500">Reserva directa mediante SMS Reminder</span>
+          </div>
         </motion.div>
 
         <motion.div

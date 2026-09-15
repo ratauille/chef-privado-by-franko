@@ -8,7 +8,7 @@ import { v1 as recaptchaEnterprise } from '@google-cloud/recaptcha-enterprise';
 admin.initializeApp();
 const db = admin.firestore();
 const recaptchaClient = new recaptchaEnterprise.RecaptchaEnterpriseServiceClient();
-const recaptchaSiteKey = process.env.RECAPTCHA_SITE_KEY || process.env.VITE_RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n';
+const recaptchaSiteKey = process.env.RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n';
 const recaptchaProjectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || 'chef-privado';
 
 async function verifyRecaptchaToken(token: string, expectedAction: string): Promise<boolean> {
@@ -457,7 +457,9 @@ export const handleNewBooking = functions.https.onRequest(async (req, res) => {
 /**
  * 5. SINCRONIZACIÓN DE GOOGLE CALENDAR -> FIRESTORE (blockedDates)
  */
-export const syncGoogleCalendar = functions.pubsub
+export const syncGoogleCalendar = functions.runWith({
+  secrets: ['GOOGLE_PRIVATE_KEY'],
+}).pubsub
   .schedule('every 15 minutes')
   .onRun(async () => {
     functions.logger.info('Ejecutando sync con Google Calendar...');

@@ -89,15 +89,41 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuote, onOpenAI }) => {
           transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="relative rounded-3xl overflow-hidden border border-stone-800 bg-[#141312] shadow-2xl group">
-            <img
-              src="/assets/private_chef_flatlay.jpg"
-              alt="Experiencia Culinaria de Lujo Chef Franko Salgado"
-              width={800}
-              height={1000}
-              loading="eager"
-              className="w-full h-[460px] sm:h-[540px] object-cover group-hover:scale-105 transition-transform duration-1000 brightness-95 group-hover:brightness-100"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/20 to-transparent"></div>
+            <div className="grid grid-cols-12 gap-2 h-[460px] sm:h-[540px] p-2 bg-[#0d0c0b]">
+              <div className="col-span-8 relative overflow-hidden rounded-2xl">
+                <img
+                  src="/assets/chef_franko_brigada.jpg"
+                  alt="Chef Franko Salgado trabajando con su brigada"
+                  width={800}
+                  height={1000}
+                  loading="eager"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 brightness-90 group-hover:brightness-100"
+                />
+              </div>
+              <div className="col-span-4 grid grid-rows-2 gap-2">
+                <div className="relative overflow-hidden rounded-2xl">
+                  <img
+                    src="/assets/IMG_1937.jpg"
+                    alt="Montaje gastronómico del Chef Franko"
+                    width={600}
+                    height={600}
+                    loading="eager"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 brightness-90 group-hover:brightness-100"
+                  />
+                </div>
+                <div className="relative overflow-hidden rounded-2xl">
+                  <img
+                    src="/assets/IMG_1389.jpg"
+                    alt="Servicio culinario para eventos privados"
+                    width={600}
+                    height={600}
+                    loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 brightness-90 group-hover:brightness-100"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/10 to-transparent pointer-events-none"></div>
 
             {/* Floating Badge */}
             <div className="absolute top-4 right-4 px-3.5 py-1.5 rounded-full bg-stone-950/90 backdrop-blur-md border border-[#c5a059]/40 text-[#d8b96d] text-xs font-semibold flex items-center gap-1.5 shadow-md">
