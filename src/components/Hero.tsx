@@ -92,8 +92,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuote, onOpenAI }) => {
             <div className="grid grid-cols-12 gap-2 h-[460px] sm:h-[540px] p-2 bg-[#0d0c0b]">
               <div className="col-span-8 relative overflow-hidden rounded-2xl">
                 <img
-                  src="/assets/chef_franko_brigada.jpg"
-                  alt="Chef Franko Salgado trabajando con su brigada"
+                  src="/assets/chef_franko_team.webp"
+                  alt="Chef Franko Salgado con su equipo de cocina"
                   width={800}
                   height={1000}
                   loading="eager"
