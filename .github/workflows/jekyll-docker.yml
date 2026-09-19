@@ -1,4 +1,15 @@
-name: Jekyll site CI
+name:    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2' # Define la versión de Ruby que use tu proyecto
+        bundler-cache: true # Instala tus gemas automáticamente usando caché
+
+    - name: Build with Jekyll
+      run: bundle exec jekyll build --future
+
 
 on:
   push:
@@ -8,13 +19,12 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
     - name: Build the site in the jekyll/builder container
       run: |
         docker run \
-        -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
-        jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future"
+        --user root \
+        -v ${{ github.workspace }}:/srv/jekyll \
+        -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
+        jekyll/builder:latest /bin/sh -c "chmod -R 777 /srv/jekyll && jekyll build --future"
+
+    runs-on: ubuntu-latest
