@@ -4,6 +4,7 @@ import axios from 'axios';
 import { google } from 'googleapis';
 import { GoogleGenAI } from '@google/genai';
 import { v1 as recaptchaEnterprise } from '@google-cloud/recaptcha-enterprise';
+import * as crypto from 'crypto';
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -11,6 +12,9 @@ const recaptchaClient = new recaptchaEnterprise.RecaptchaEnterpriseServiceClient
 const recaptchaSiteKey = process.env.RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n';
 const recaptchaProjectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || 'chef-privado';
 
+/**
+ * Helper: Verificación estricta de reCAPTCHA Enterprise
+ */
 async function verifyRecaptchaToken(token: string, expectedAction: string): Promise<boolean> {
   if (!token) {
     functions.logger.warn('[reCAPTCHA] Token no proporcionado en la petición.');
@@ -34,16 +38,89 @@ async function verifyRecaptchaToken(token: string, expectedAction: string): Prom
     const tokenProperties = assessment.tokenProperties;
     const score = assessment.riskAnalysis?.score ?? 0;
 
-    functions.logger.info(`[reCAPTCHA] Validado token - valid: ${tokenProperties?.valid}, action: ${tokenProperties?.action}, score: ${score}`);
+    functions.logger.info(`[reCAPTCHA] Token evaluado - valid: ${tokenProperties?.valid}, action: ${tokenProperties?.action}, score: ${score}`);
 
-    if (tokenProperties?.valid === false) {
-      functions.logger.warn(`[reCAPTCHA] Token inválido. Motivo: ${tokenProperties.invalidReason}`);
+    if (tokenProperties?.valid !== true) {
+      functions.logger.warn(`[reCAPTCHA] Token inválido. Motivo: ${tokenProperties?.invalidReason}`);
       return false;
     }
 
-    return tokenProperties?.valid === true && (score === 0 || score >= 0.3);
+    if (tokenProperties.action && tokenProperties.action.toUpperCase() !== expectedAction.toUpperCase()) {
+      functions.logger.warn(`[reCAPTCHA] Acción no coincide. Esperada: ${expectedAction}, recibida: ${tokenProperties.action}`);
+      return false;
+    }
+
+    return score >= 0.5;
   } catch (err) {
     functions.logger.error('[reCAPTCHA] Error al conectar con API de assessment:', err);
+    return false;
+  }
+}
+
+/**
+ * Helper: Rate limiting basado en Firestore con hash de IP sin guardar datos personales libres
+ */
+async function isRateLimited(req: functions.https.Request, actionName: string, maxRequests: number = 10, windowMinutes: number = 15): Promise<boolean> {
+  try {
+    const rawIp = (req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || '127.0.0.1').split(',')[0].trim();
+    const windowKey = Math.floor(Date.now() / (windowMinutes * 60 * 1000));
+    const ipHash = crypto.createHash('sha256').update(`${rawIp}-${windowKey}-${actionName}`).digest('hex').slice(0, 16);
+
+    const docRef = db.collection('rate_limits').doc(`${actionName}_${ipHash}`);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+      await docRef.set({
+        count: 1,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        expiresAt: new Date(Date.now() + windowMinutes * 60 * 1000),
+      });
+      return false;
+    }
+
+    const currentCount = docSnap.data()?.count || 0;
+    if (currentCount >= maxRequests) {
+      functions.logger.warn(`[RateLimit] Peticiones excedidas para acción ${actionName}`);
+      return true;
+    }
+
+    await docRef.update({
+      count: admin.firestore.FieldValue.increment(1),
+    });
+
+    return false;
+  } catch (err) {
+    functions.logger.error('[RateLimit] Error verificando rate limit en Firestore:', err);
+    return false;
+  }
+}
+
+/**
+ * Helper: Previene reservas duplicadas dentro de una ventana de 10 minutos
+ */
+async function isDuplicateLead(cleanData: any): Promise<boolean> {
+  try {
+    const leadKey = crypto.createHash('sha256')
+      .update(`${cleanData.clientName}-${cleanData.email}-${cleanData.date}`)
+      .digest('hex').slice(0, 20);
+
+    const docRef = db.collection('lead_idempotency').doc(leadKey);
+    const docSnap = await docRef.get();
+
+    if (docSnap.exists) {
+      const createdAt = docSnap.data()?.createdAt?.toDate();
+      if (createdAt && (Date.now() - createdAt.getTime()) < 10 * 60 * 1000) {
+        return true;
+      }
+    }
+
+    await docRef.set({
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      clientHash: crypto.createHash('sha256').update(cleanData.email).digest('hex').slice(0, 10),
+    });
+    return false;
+  } catch (err) {
+    functions.logger.error('[apiLead] Error al verificar clave de idempotencia:', err);
     return false;
   }
 }
@@ -62,14 +139,13 @@ function escapeHtml(str: any): string {
 }
 
 /**
- * Helper: Configuración estricta de CORS
+ * Helper: Configuración estricta de CORS sin wildcard (*)
  */
 function setCorsHeaders(req: functions.https.Request, res: functions.Response) {
   const allowedOrigins = [
     'https://chef4youbyfranko.com',
     'https://chef-privado.web.app',
     'https://chef-privado.firebaseapp.com',
-    'https://chef-privado-by-franko--chef-privado.us-central1.hosted.app',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
   ];
@@ -309,7 +385,7 @@ export const onReservationCreated = functions.firestore
   });
 
 /**
- * 2. ENDPOINT HTTPS /api/lead - Formulario de Reserva Web
+ * 2. ENDPOINT HTTPS /api/lead - Formulario de Reserva Web (Protegido & Idempotente)
  */
 export const apiLead = functions.https.onRequest(async (req, res) => {
   setCorsHeaders(req, res);
@@ -325,7 +401,13 @@ export const apiLead = functions.https.onRequest(async (req, res) => {
   }
 
   try {
-    const recaptchaToken = String(req.headers['x-recaptcha-token'] || '');
+    // Rate Limiting (Máx 5 peticiones por 15 min por IP hash)
+    if (await isRateLimited(req, 'apiLead', 5, 15)) {
+      res.status(429).json({ error: 'Demasiadas solicitudes. Por favor intente más tarde.' });
+      return;
+    }
+
+    const recaptchaToken = String(req.headers['x-recaptcha-token'] || req.body?.recaptchaToken || '');
     const recaptchaAction = String(req.headers['x-recaptcha-action'] || 'RESERVATION');
 
     if (!(await verifyRecaptchaToken(recaptchaToken, recaptchaAction))) {
@@ -339,11 +421,23 @@ export const apiLead = functions.https.onRequest(async (req, res) => {
       return;
     }
 
+    // Prevención de duplicados (Idempotencia)
+    if (await isDuplicateLead(validation.cleanData)) {
+      res.status(200).json({
+        success: true,
+        message: 'Solicitud recibida previamente. Franko se pondrá en contacto pronto.',
+      });
+      return;
+    }
+
     const docRef = await db.collection('reservations').add({
       ...validation.cleanData,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       status: 'pending',
     });
+
+    // Logging seguro sin datos personales en texto claro
+    functions.logger.info(`[apiLead] Reserva creada exitosamente. ID: ${docRef.id}, Fecha: ${validation.cleanData.date}, Comensales: ${validation.cleanData.guests}`);
 
     res.status(200).json({
       success: true,
@@ -357,7 +451,7 @@ export const apiLead = functions.https.onRequest(async (req, res) => {
 });
 
 /**
- * 3. ENDPOINT HTTPS /api/assistant/chat - Franko AI Assistant Widget
+ * 3. ENDPOINT HTTPS /api/assistant/chat - Franko AI Assistant Widget (Protegido & Rate Limited)
  */
 export const apiAssistantChat = functions.https.onRequest(async (req, res) => {
   setCorsHeaders(req, res);
@@ -373,6 +467,22 @@ export const apiAssistantChat = functions.https.onRequest(async (req, res) => {
   }
 
   try {
+    // Rate Limiting (Máx 10 consultas por 15 min por IP hash)
+    if (await isRateLimited(req, 'apiAssistantChat', 10, 15)) {
+      res.status(429).json({ error: 'Has alcanzado el límite de consultas al asistente. Por favor contáctanos por WhatsApp al +52 322 160 6843.' });
+      return;
+    }
+
+    // Validación opcional/estricta de reCAPTCHA para el chat si viene token
+    const recaptchaToken = String(req.headers['x-recaptcha-token'] || req.body?.recaptchaToken || '');
+    if (recaptchaToken) {
+      const isHuman = await verifyRecaptchaToken(recaptchaToken, 'CHAT');
+      if (!isHuman) {
+        res.status(403).json({ error: 'Verificación antispam fallida en asistente virtual.' });
+        return;
+      }
+    }
+
     const message = String(req.body?.message || req.body?.prompt || '').trim();
     if (!message || message.length > 500) {
       res.status(400).json({ error: 'El mensaje debe contener entre 1 y 500 caracteres.' });
@@ -381,8 +491,9 @@ export const apiAssistantChat = functions.https.onRequest(async (req, res) => {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
+      functions.logger.info('GEMINI_API_KEY no configurada. Devuelta respuesta predeterminada.');
       res.status(200).json({
-        reply: 'Hola, soy el asistente virtual de Chef Franko Salgado. Por favor contáctanos directamente por WhatsApp o llena nuestro formulario de cotización para ponernos en contacto contigo.',
+        reply: 'Hola, soy el asistente virtual de Chef Franko Salgado. Para atención inmediata y cotización directa, contáctanos por WhatsApp al +52 322 160 6843 o llena nuestro formulario.',
       });
       return;
     }
@@ -397,6 +508,7 @@ Información clave sobre Chef Franko:
 - Servicios: Cenas de autor en villa privada, banquetes de gala, bodas íntimas, cenas románticas de 5 o 6 tiempos.
 - Zonas de cobertura: Puerto Vallarta, Punta Mita, Sayulita, Nuevo Vallarta, Riviera Nayarit.
 - Formación: Le Cordon Bleu París, ex Chef Ejecutivo Four Seasons.
+- Contacto WhatsApp: +52 322 160 6843.
 - Invita amablemente al cliente a cotizar su evento usando el formulario del sitio o enviando un mensaje directo.
 Responde directamente en español en máximo 3 párrafos cortos.
 `;
@@ -410,13 +522,14 @@ Responde directamente en español en máximo 3 párrafos cortos.
       reply: response.text || 'Gracias por tu consulta. Chef Franko se pondrá en contacto contigo a la brevedad.',
     });
   } catch (error: any) {
-    functions.logger.error('Error en apiAssistantChat:', error);
+    functions.logger.error('Error en apiAssistantChat:', error?.message || error);
     res.status(500).json({ error: 'Error interno en el asistente virtual.' });
   }
 });
 
 /**
- * 4. ENDPOINT HTTPS DIRECTO handleNewBooking (Protegido & Sanitizado)
+ * 4. ENDPOINT HTTPS DIRECTO handleNewBooking (DEPRECATED & Protegido)
+ * Nota: Endpoint no utilizado en el frontend ni en firebase.json rewrites. Mantenido por compatibilidad legacy.
  */
 export const handleNewBooking = functions.https.onRequest(async (req, res) => {
   setCorsHeaders(req, res);
@@ -432,6 +545,19 @@ export const handleNewBooking = functions.https.onRequest(async (req, res) => {
   }
 
   try {
+    functions.logger.warn('[DEPRECATED] Solicitud recibida en handleNewBooking. Este endpoint está obsoleto y será retirado.');
+
+    if (await isRateLimited(req, 'handleNewBooking', 5, 15)) {
+      res.status(429).json({ error: 'Demasiadas solicitudes.' });
+      return;
+    }
+
+    const recaptchaToken = String(req.headers['x-recaptcha-token'] || req.body?.recaptchaToken || '');
+    if (!(await verifyRecaptchaToken(recaptchaToken, 'RESERVATION'))) {
+      res.status(403).json({ error: 'Verificación antispam fallida.' });
+      return;
+    }
+
     const validation = validateReservationPayload(req.body);
     if (!validation.valid) {
       res.status(400).json({ error: validation.error });
