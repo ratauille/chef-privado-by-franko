@@ -14,7 +14,7 @@ const recaptchaProjectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT
 async function verifyRecaptchaToken(token: string, expectedAction: string): Promise<boolean> {
   if (!token) {
     functions.logger.warn('[reCAPTCHA] Token no proporcionado en la petición.');
-    return true;
+    return false;
   }
 
   const siteKey = recaptchaSiteKey || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n';
@@ -44,7 +44,7 @@ async function verifyRecaptchaToken(token: string, expectedAction: string): Prom
     return tokenProperties?.valid === true && (score === 0 || score >= 0.3);
   } catch (err) {
     functions.logger.error('[reCAPTCHA] Error al conectar con API de assessment:', err);
-    return true;
+    return false;
   }
 }
 
@@ -69,6 +69,7 @@ function setCorsHeaders(req: functions.https.Request, res: functions.Response) {
     'https://chef4youbyfranko.com',
     'https://chef-privado.web.app',
     'https://chef-privado.firebaseapp.com',
+    'https://chef-privado-by-franko--chef-privado.us-central1.hosted.app',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
   ];
