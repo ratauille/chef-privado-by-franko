@@ -1,12 +1,9 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Navbar } from './components/Navbar';
-import { Hero } from './components/Hero';
-import { ValueProposition } from './components/ValueProposition';
 import { Experiences } from './components/Experiences';
 import { ChefBio } from './components/ChefBio';
-import { Testimonials } from './components/Testimonials';
-import { ServicesBanner } from './components/ServicesBanner';
 import { Footer } from './components/Footer';
+import { HomePage } from './components/HomePage';
 
 // Lazy-loaded components for optimal bundle splitting
 const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
@@ -145,34 +142,12 @@ export function App() {
 
   // Route 6: / (Homepage SPA)
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
-      <Navbar
-        currentPath={pathname}
-        onNavigate={navigateTo}
-        onOpenQuote={() => setQuoteOpen(true)}
-        onOpenAI={() => setAiChatOpen(true)}
-      />
-      <main>
-        <Hero
-          onOpenQuote={() => setQuoteOpen(true)}
-          onOpenAI={() => setAiChatOpen(true)}
-        />
-        <ValueProposition onOpenQuote={() => setQuoteOpen(true)} />
-        <ServicesBanner onOpenQuote={() => setQuoteOpen(true)} />
-        <Experiences onOpenQuote={() => setQuoteOpen(true)} />
-        <Suspense fallback={<LoadingSpinner />}>
-          <ArtGallery onOpenQuote={() => setQuoteOpen(true)} />
-        </Suspense>
-        <ChefBio onOpenQuote={() => setQuoteOpen(true)} />
-        <Testimonials />
-      </main>
-      <Footer onNavigate={navigateTo} />
-
+    <>
+      <HomePage onOpenQuote={() => setQuoteOpen(true)} onNavigate={navigateTo} />
       <Suspense fallback={null}>
         {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
-        {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
       </Suspense>
-    </div>
+    </>
   );
 }
 
