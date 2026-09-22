@@ -83,22 +83,10 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
       } catch (apiErr) {
         console.warn('[QuoteModal] /api/lead no disponible, usando fallback directo a Firestore:', apiErr);
       }
-
-      // Direct write fallback to Firestore if Cloud Function API was not reachable or failed
+      // Do not bypass the protected endpoint. A failed API/reCAPTCHA request must
+      // remain a visible error instead of silently creating an unverified lead.
       if (!successSubmitted) {
-        await addDoc(collection(db, 'reservations'), {
-          clientName: String(formData.clientName || '').trim(),
-          email: String(formData.email || '').trim().toLowerCase(),
-          phone: String(formData.phone || '').trim(),
-          date: String(formData.date || '').trim(),
-          guests: Number(formData.guests) || 1,
-          serviceName: String(formData.serviceName || 'Menú Personalizado').trim(),
-          notes: String(formData.notes || '').trim(),
-          status: 'pending',
-          createdAt: serverTimestamp(),
-          source: 'web_modal',
-        });
-        successSubmitted = true;
+        throw new Error('No pudimos enviar tu solicitud de forma segura. Por favor inténtalo nuevamente.');
       }
 
       // Track GA4 conversion event
