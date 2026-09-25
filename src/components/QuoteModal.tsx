@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { leadWhatsAppUrl } from '../lib/leadFallback';
 
 interface QuoteModalProps {
   isOpen: boolean;
@@ -81,7 +82,7 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
           }
         }
       } catch (apiErr) {
-        console.warn('[QuoteModal] /api/lead no disponible, usando fallback directo a Firestore:', apiErr);
+        console.warn('[QuoteModal] /api/lead no disponible:', apiErr);
       }
       // Do not bypass the protected endpoint. A failed API/reCAPTCHA request must
       // remain a visible error instead of silently creating an unverified lead.
@@ -284,9 +285,10 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               {error && (
-                <div className="p-3 rounded-xl bg-red-950/80 border border-red-800 text-red-200 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
-                  <span>{error}</span>
+                <div className="p-3 rounded-xl bg-red-950/80 border border-red-800 text-red-200 text-xs space-y-2" role="alert">
+                  <p className="flex items-center gap-2"><AlertCircle className="w-4 h-4 shrink-0 text-red-400" />{error}</p>
+                  <p>Tu solicitud no se registró. Puedes enviarla directamente por WhatsApp:</p>
+                  <a href={leadWhatsAppUrl(formData)} target="_blank" rel="noopener noreferrer" className="inline-block underline font-semibold">Abrir WhatsApp y enviar solicitud</a>
                 </div>
               )}
 

@@ -98,31 +98,33 @@ async function isRateLimited(req: functions.https.Request, actionName: string, m
 /**
  * Helper: Previene reservas duplicadas dentro de una ventana de 10 minutos
  */
-async function isDuplicateLead(cleanData: any): Promise<boolean> {
-  try {
-    const leadKey = crypto.createHash('sha256')
-      .update(`${cleanData.clientName}-${cleanData.email}-${cleanData.date}`)
-      .digest('hex').slice(0, 20);
+async function saveLeadOnce(cleanData: any): Promise<{ id: string; duplicate: boolean }> {
+  const leadKey = crypto.createHash('sha256')
+    .update(`${cleanData.clientName}-${cleanData.email}-${cleanData.date}`)
+    .digest('hex').slice(0, 20);
+  const markerRef = db.collection('lead_idempotency').doc(leadKey);
+  const reservationRef = db.collection('reservations').doc();
 
-    const docRef = db.collection('lead_idempotency').doc(leadKey);
-    const docSnap = await docRef.get();
-
-    if (docSnap.exists) {
-      const createdAt = docSnap.data()?.createdAt?.toDate();
-      if (createdAt && (Date.now() - createdAt.getTime()) < 10 * 60 * 1000) {
-        return true;
-      }
+  // The marker and reservation commit together. A failed write cannot falsely
+  // acknowledge a lead, and concurrent submissions share the same reservation.
+  return db.runTransaction(async (transaction) => {
+    const marker = await transaction.get(markerRef);
+    const previous = marker.data();
+    const createdAt = previous?.createdAt?.toDate?.();
+    if (createdAt && previous?.reservationId && Date.now() - createdAt.getTime() < 10 * 60 * 1000) {
+      return { id: previous.reservationId as string, duplicate: true };
     }
-
-    await docRef.set({
+    transaction.set(reservationRef, {
+      ...cleanData,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      clientHash: crypto.createHash('sha256').update(cleanData.email).digest('hex').slice(0, 10),
+      status: 'pending',
     });
-    return false;
-  } catch (err) {
-    functions.logger.error('[apiLead] Error al verificar clave de idempotencia:', err);
-    return false;
-  }
+    transaction.set(markerRef, {
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      reservationId: reservationRef.id,
+    });
+    return { id: reservationRef.id, duplicate: false };
+  });
 }
 
 /**
@@ -421,27 +423,23 @@ export const apiLead = functions.https.onRequest(async (req, res) => {
       return;
     }
 
-    // Prevención de duplicados (Idempotencia)
-    if (await isDuplicateLead(validation.cleanData)) {
+    // Reserva y clave de idempotencia se guardan atómicamente.
+    const saved = await saveLeadOnce(validation.cleanData);
+    if (saved.duplicate) {
       res.status(200).json({
         success: true,
+        id: saved.id,
         message: 'Solicitud recibida previamente. Franko se pondrá en contacto pronto.',
       });
       return;
     }
 
-    const docRef = await db.collection('reservations').add({
-      ...validation.cleanData,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      status: 'pending',
-    });
-
     // Logging seguro sin datos personales en texto claro
-    functions.logger.info(`[apiLead] Reserva creada exitosamente. ID: ${docRef.id}, Fecha: ${validation.cleanData.date}, Comensales: ${validation.cleanData.guests}`);
+    functions.logger.info(`[apiLead] Reserva creada exitosamente. ID: ${saved.id}, Fecha: ${validation.cleanData.date}, Comensales: ${validation.cleanData.guests}`);
 
     res.status(200).json({
       success: true,
-      id: docRef.id,
+      id: saved.id,
       message: 'Solicitud de reserva recibida exitosamente.',
     });
   } catch (error: any) {

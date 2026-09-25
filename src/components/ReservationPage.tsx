@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCircle, Sparkles, ShieldCheck, Clock, ArrowRight } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { leadWhatsAppUrl } from '../lib/leadFallback';
 
 const DRAFT_KEY = 'chef4you_reservation_draft_v1';
 const SMS_REMINDER_BOOKING_URL = 'https://www.smsreminder.co/book/tiVbGssvDw6CtX6t/franko-salgado?utm_source=inline-button-embed&utm_medium=embed';
@@ -96,7 +97,7 @@ export const ReservationPage: React.FC = () => {
           }
         }
       } catch (apiErr) {
-        console.warn('[ReservationPage] /api/lead no disponible, usando fallback directo a Firestore:', apiErr);
+        console.warn('[ReservationPage] /api/lead no disponible:', apiErr);
       }
 
       // Do not bypass the protected endpoint. A failed API/reCAPTCHA request must
@@ -359,16 +360,17 @@ export const ReservationPage: React.FC = () => {
               </div>
 
               {error && (
-                <div className="p-4 rounded-xl bg-red-950/80 border border-red-800/80 text-red-200 text-xs flex items-center gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-                  <span>{error}</span>
+                <div className="p-4 rounded-xl bg-red-950/80 border border-red-800/80 text-red-200 text-xs space-y-2" role="alert">
+                  <p className="flex items-center gap-3"><AlertCircle className="w-5 h-5 text-red-400 shrink-0" />{error}</p>
+                  <p>Tu solicitud no se registró. Puedes enviarla directamente por WhatsApp:</p>
+                  <a href={leadWhatsAppUrl(formData)} target="_blank" rel="noopener noreferrer" className="inline-block underline font-semibold">Abrir WhatsApp y enviar solicitud</a>
                 </div>
               )}
 
               <div className="pt-4 border-t border-stone-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-xs text-stone-400">
                   <ShieldCheck className="w-4 h-4 text-[#c5a059]" />
-                  <span>Tus datos están protegidos y se guardan automáticamente.</span>
+                  <span>Tu borrador se conserva en este navegador hasta que envíes la solicitud.</span>
                 </div>
 
                 <button

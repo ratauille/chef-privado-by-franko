@@ -3,6 +3,12 @@ import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
 import { execSync } from 'child_process';
 import axios from 'axios';
 
+// This script creates a reservation. Never let it run against production.
+if (!process.env.FIRESTORE_EMULATOR_HOST) {
+  console.error('Prueba detenida: configura FIRESTORE_EMULATOR_HOST y ejecuta el emulador de Firestore.');
+  process.exit(1);
+}
+
 const firebaseConfig = {
   apiKey: "AIzaSyD9tVah09y2Zh_tJQobgBwU4TrTjaFUPbM",
   authDomain: "chef-privado.firebaseapp.com",
