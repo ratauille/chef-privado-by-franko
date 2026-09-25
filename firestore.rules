@@ -8,28 +8,10 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.admin == true;
     }
 
-    // Colección: reservations (Reservas creadas desde el widget web o Cloud Functions)
+    // Las reservas públicas se reciben por la Function apiLead, que escribe
+    // con Admin SDK. El cliente web nunca debe escribir directamente aquí.
     match /reservations/{reservationId} {
-      // El cliente público solo puede crear reservas si cumple validaciones de tamaño y formato
-      allow create: if request.resource.data.keys().hasAll(['clientName', 'email', 'phone', 'date', 'guests'])
-                   && request.resource.data.clientName is string
-                   && request.resource.data.clientName.size() >= 2
-                   && request.resource.data.clientName.size() <= 100
-                   && request.resource.data.email is string
-                   && request.resource.data.email.size() >= 3
-                   && request.resource.data.email.size() <= 150
-                   && request.resource.data.phone is string
-                   && request.resource.data.phone.size() >= 6
-                   && request.resource.data.phone.size() <= 30
-                   && request.resource.data.date is string
-                   && request.resource.data.date.size() >= 6
-                   && request.resource.data.date.size() <= 50
-                   && (request.resource.data.guests is number || request.resource.data.guests is int)
-                   && request.resource.data.guests >= 1
-                   && request.resource.data.guests <= 200;
-      
-      // Lectura, actualización y eliminación restringidas exclusivamente a cuentas administradoras
-      allow read, update, delete: if isAdmin();
+      allow read, create, update, delete: if isAdmin();
     }
 
     // Colección: blockedDates (Fechas no disponibles sincronizadas con Google Calendar)

@@ -59,6 +59,8 @@ firebase deploy --only functions
 
 El formulario y el chat necesitan Functions operativas. Si ambas rutas devuelven HTTP 500, revisa **Firebase Console → Build → Functions → Registros** o ejecuta `firebase functions:log --project chef-privado` antes de volver a desplegar. Tras el despliegue, una petición inválida a `/api/lead` debe recibir un error JSON del endpoint, no un HTML 500 del servidor.
 
+Cuando `/api/lead` responda correctamente, despliega también `firebase deploy --only firestore:rules --project chef-privado`. Las reglas del repositorio cierran la escritura pública directa en `reservations`; el Admin SDK de la Function puede seguir creando leads. Comprueba primero el endpoint para mantener la captura automática durante el cambio.
+
 Para Gemini, rota cualquier clave que hayas compartido y configura la nueva en el proyecto Firebase correcto mediante `firebase functions:secrets:set GEMINI_API_KEY --project chef-privado`. Las Functions `apiAssistantChat` y `onReservationCreated` declaran el acceso al secreto. Nunca pegues su valor en GitHub, `.env.example` o un comando compartido. Esta configuración requiere desplegar esas Functions para surtir efecto.
 
 Si el endpoint de leads falla, los formularios muestran un enlace a WhatsApp con la solicitud preparada. El visitante debe pulsar **Enviar** en WhatsApp; abrir el enlace no registra una reserva en Firestore.
