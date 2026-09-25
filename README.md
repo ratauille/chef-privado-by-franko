@@ -21,7 +21,7 @@ Documentación técnica oficial, arquitectura de producción y guía de segurida
 - ❌ **Repositorio privado:** `ratauille/chefOs` (No usar)
 - ❌ **Firebase App Hosting:** No habilitado / No usar
 - ❌ **GitHub Pages:** Solo respaldo / No producción
-- ❌ **Facturación Blaze / Cloud Run / Artifact Registry:** No requeridos
+- ⚠️ **Cloud Functions:** Verifica el plan y los permisos del proyecto antes de desplegarlas; publicar solo Hosting no activa `/api/lead` ni `/api/assistant/chat`.
 
 ---
 
@@ -52,10 +52,16 @@ firebase use chef-privado
 firebase deploy --only hosting
 ```
 
-### Despliegue de Cloud Functions (Solamente con autorización de plan)
+### Despliegue de Cloud Functions (tras comprobar el plan y el proyecto)
 ```powershell
 firebase deploy --only functions
 ```
+
+El formulario y el chat necesitan Functions operativas. Si ambas rutas devuelven HTTP 500, revisa **Firebase Console → Build → Functions → Registros** o ejecuta `firebase functions:log --project chef-privado` antes de volver a desplegar. Tras el despliegue, una petición inválida a `/api/lead` debe recibir un error JSON del endpoint, no un HTML 500 del servidor.
+
+Para Gemini, rota cualquier clave que hayas compartido y configura la nueva en el proyecto Firebase correcto mediante `firebase functions:secrets:set GEMINI_API_KEY --project chef-privado`. Las Functions `apiAssistantChat` y `onReservationCreated` declaran el acceso al secreto. Nunca pegues su valor en GitHub, `.env.example` o un comando compartido. Esta configuración requiere desplegar esas Functions para surtir efecto.
+
+Si el endpoint de leads falla, los formularios muestran un enlace a WhatsApp con la solicitud preparada. El visitante debe pulsar **Enviar** en WhatsApp; abrir el enlace no registra una reserva en Firestore.
 
 ---
 

@@ -282,7 +282,7 @@ Responde UNICAMENTE con el objeto JSON.
  * 1. TRIGGER NOTIFICACIONES DE RESERVA (100% Firebase Native)
  * Se activa automáticamente al crearse un documento en la colección 'reservations'
  */
-export const onReservationCreated = functions.firestore
+export const onReservationCreated = functions.runWith({ secrets: ['GEMINI_API_KEY'] }).firestore
   .document('reservations/{reservationId}')
   .onCreate(async (snapshot, context) => {
     const reservation = snapshot.data();
@@ -451,7 +451,7 @@ export const apiLead = functions.https.onRequest(async (req, res) => {
 /**
  * 3. ENDPOINT HTTPS /api/assistant/chat - Franko AI Assistant Widget (Protegido & Rate Limited)
  */
-export const apiAssistantChat = functions.https.onRequest(async (req, res) => {
+export const apiAssistantChat = functions.runWith({ secrets: ['GEMINI_API_KEY'] }).https.onRequest(async (req, res) => {
   setCorsHeaders(req, res);
 
   if (req.method === 'OPTIONS') {
