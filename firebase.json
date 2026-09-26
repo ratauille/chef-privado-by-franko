@@ -19,10 +19,8 @@
     }
   ],
   "hosting": {
+    "site": "chef-privado",
     "public": "dist",
-    "predeploy": [
-      "npm run build"
-    ],
     "ignore": [
       "firebase.json",
       "**/.*",

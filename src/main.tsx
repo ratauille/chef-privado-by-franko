@@ -1,10 +1,7 @@
-import { ClerkProvider } from '@clerk/react';
 import React, { Component, ReactNode } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
-
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -54,13 +51,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <ErrorBoundary>
-      {PUBLISHABLE_KEY ? (
-        <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
-          <App />
-        </ClerkProvider>
-      ) : (
-        <App />
-      )}
+      <App />
     </ErrorBoundary>
   </React.StrictMode>
 );

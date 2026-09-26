@@ -4,6 +4,7 @@ import { Experiences } from './components/Experiences';
 import { ChefBio } from './components/ChefBio';
 import { Footer } from './components/Footer';
 import { HomePage } from './components/HomePage';
+import { LanguageProvider } from './lib/i18n';
 
 // Lazy-loaded components for optimal bundle splitting
 const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
@@ -15,11 +16,11 @@ const FrankoAIChatModal = lazy(() => import('./components/FrankoAIChatModal').th
 const LoadingSpinner = () => (
   <div className="min-h-[60vh] flex flex-col items-center justify-center bg-[#0a0a0a] text-stone-400 space-y-4">
     <div className="w-10 h-10 border-2 border-stone-800 border-t-[#c5a059] rounded-full animate-spin" />
-    <p className="text-xs font-mono uppercase tracking-widest text-stone-500">Cargando Experiencia...</p>
+    <p className="text-xs font-mono uppercase tracking-widest text-stone-500">Chef 4 You by Franko...</p>
   </div>
 );
 
-export function App() {
+function AppContent() {
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [aiChatOpen, setAiChatOpen] = useState(false);
   const [pathname, setPathname] = useState(window.location.pathname);
@@ -134,6 +135,7 @@ export function App() {
         <Footer onNavigate={navigateTo} />
 
         <Suspense fallback={null}>
+          {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
           {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
         </Suspense>
       </div>
@@ -146,9 +148,19 @@ export function App() {
       <HomePage onOpenQuote={() => setQuoteOpen(true)} onNavigate={navigateTo} />
       <Suspense fallback={null}>
         {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
+        {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
       </Suspense>
     </>
   );
 }
 
+export function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
+  );
+}
+
 export default App;
+

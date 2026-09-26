@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCircle, Sparkles, ShieldCheck, Clock, ArrowRight } from 'lucide-react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCircle, Sparkles, ShieldCheck, ArrowRight } from 'lucide-react';
+import { useLanguage } from '../lib/i18n';
 
 const DRAFT_KEY = 'chef4you_reservation_draft_v1';
 const SMS_REMINDER_BOOKING_URL = 'https://www.smsreminder.co/book/tiVbGssvDw6CtX6t/franko-salgado?utm_source=inline-button-embed&utm_medium=embed';
@@ -10,6 +9,7 @@ const SMS_REMINDER_SCRIPT_ID = 'smsreminder-inline-button-script';
 
 export const ReservationPage: React.FC = () => {
   const today = new Date().toISOString().split('T')[0];
+  const { t, lang } = useLanguage();
 
   const [formData, setFormData] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -26,7 +26,7 @@ export const ReservationPage: React.FC = () => {
       phone: '',
       date: '',
       guests: 6,
-      serviceName: 'Cena Degustación de Autor 5 Tiempos',
+      serviceName: t.forms.servicesList[0] || '5-Course Author Tasting Menu',
       notes: '',
     };
   });
@@ -40,9 +40,7 @@ export const ReservationPage: React.FC = () => {
     if (typeof window !== 'undefined' && !success) {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
-      } catch (e) {
-        // ignore storage errors
-      }
+      } catch (e) {}
     }
   }, [formData, success]);
 
@@ -72,7 +70,10 @@ export const ReservationPage: React.FC = () => {
       let recaptchaToken = '';
       if (typeof window !== 'undefined' && (window as any).grecaptcha?.enterprise) {
         try {
-          recaptchaToken = await (window as any).grecaptcha.enterprise.execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n', { action: 'RESERVATION' });
+          recaptchaToken = await (window as any).grecaptcha.enterprise.execute(
+            import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n',
+            { action: 'RESERVATION' }
+          );
         } catch (err) {
           console.warn('[reCAPTCHA Enterprise] Notice:', err);
         }
@@ -96,13 +97,15 @@ export const ReservationPage: React.FC = () => {
           }
         }
       } catch (apiErr) {
-        console.warn('[ReservationPage] /api/lead no disponible, usando fallback directo a Firestore:', apiErr);
+        console.warn('[ReservationPage] /api/lead error:', apiErr);
       }
 
-      // Do not bypass the protected endpoint. A failed API/reCAPTCHA request must
-      // remain a visible error instead of silently creating an unverified lead.
       if (!successSubmitted) {
-        throw new Error('No pudimos enviar tu solicitud de forma segura. Por favor inténtalo nuevamente.');
+        throw new Error(
+          lang === 'es'
+            ? 'No pudimos enviar tu solicitud de forma segura. Por favor intenta de nuevo o escríbenos directamente por WhatsApp.'
+            : 'We could not submit your request safely. Please try again or reach out to Chef Franko directly on WhatsApp.'
+        );
       }
 
       // Track GA4 event
@@ -121,7 +124,12 @@ export const ReservationPage: React.FC = () => {
 
       setSuccess(true);
     } catch (err: any) {
-      setError(err.message || 'Ocurrió un error al enviar tu solicitud. Se han conservado tus datos para que reintentes.');
+      setError(
+        err.message ||
+          (lang === 'es'
+            ? 'Ocurrió un error al enviar tu solicitud. Se han conservado tus datos para que reintentes.'
+            : 'An error occurred while submitting your request. Your details have been preserved.')
+      );
     } finally {
       setLoading(false);
     }
@@ -140,34 +148,38 @@ export const ReservationPage: React.FC = () => {
         >
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#181715] border border-[#c5a059]/40 text-[#d8b96d] text-xs font-semibold uppercase tracking-[0.2em]">
             <Sparkles className="w-3.5 h-3.5 text-[#c5a059]" />
-            <span>Reserva & Cotización Directa</span>
+            <span>{t.forms.reservationBadge}</span>
           </div>
 
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-light text-white tracking-tight">
-            Diseña Tu Experiencia <span className="italic text-[#d8b96d]">Gourmet</span>
+            {t.forms.reservationTitle}{' '}
+            <span className="italic text-[#d8b96d]">{t.forms.reservationTitleAccent}</span>
           </h1>
 
-          <p className="text-stone-400 text-base sm:text-lg max-w-xl mx-auto font-light">
-            Consulta disponibilidad para tu villa, casa de playa o evento privado en Puerto Vallarta, Punta Mita y Sayulita.
+          <p className="text-stone-400 text-base sm:text-lg max-w-xl mx-auto font-light leading-relaxed">
+            {t.forms.reservationSubtitle}
           </p>
 
           <div className="pt-2 flex flex-col items-center gap-2">
-            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">¿Ya tienes fecha y horario?</span>
+            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">
+              {lang === 'es' ? '¿Deseas agendar llamada o reunión directa?' : 'Need to schedule an instant intro call?'}
+            </span>
             <a
               href={SMS_REMINDER_BOOKING_URL}
               target="_blank"
               rel="noopener noreferrer"
               data-bwm
-              data-bwm-label="Book Now"
-              data-bwm-color="#5777da"
-              data-bwm-text-color="#c9baba"
+              data-bwm-label="Book Calendar Call"
+              data-bwm-color="#c5a059"
+              data-bwm-text-color="#0a0a0a"
               data-bwm-size="normal"
               data-bwm-position="centered"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#1e1c18] border border-[#c5a059]/40 text-[#d8b96d] text-xs font-semibold hover:bg-[#c5a059] hover:text-stone-950 transition-colors"
               aria-label="Abrir calendario de reservas"
             >
-              Book Now
+              <Calendar className="w-3.5 h-3.5" />
+              <span>{t.forms.calendarBookingBtn}</span>
             </a>
-            <span className="text-[11px] text-stone-500">Reserva directa mediante SMS Reminder</span>
           </div>
         </motion.div>
 
@@ -184,42 +196,41 @@ export const ReservationPage: React.FC = () => {
               </div>
 
               <h2 className="font-serif text-3xl sm:text-4xl font-light text-white">
-                ¡Solicitud de Reserva Recibida!
+                {t.forms.successTitle}
               </h2>
 
-              <p className="text-stone-300 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
-                Gracias, <strong className="text-white">{formData.clientName}</strong>. Hemos recibido tu solicitud para el día <strong className="text-[#d8b96d]">{formData.date}</strong> para <strong className="text-white">{formData.guests} comensales</strong>.
+              <p className="text-stone-300 text-sm sm:text-base max-w-md mx-auto leading-relaxed font-light">
+                {lang === 'es' ? 'Gracias' : 'Thank you'}, <strong className="text-white">{formData.clientName}</strong>.{' '}
+                {lang === 'es'
+                  ? `Hemos recibido tu solicitud para el día ${formData.date} (${formData.guests} comensales).`
+                  : `We have received your reservation request for ${formData.date} (${formData.guests} guests).`}
               </p>
 
               <div className="p-4 rounded-2xl bg-[#1c1b18] border border-stone-800 max-w-md mx-auto text-xs text-stone-400 space-y-1">
-                <p>El Chef Franko Salgado se comunicará contigo al teléfono/WhatsApp:</p>
-                <p className="font-mono text-[#d8b96d] font-bold text-sm">{formData.phone}</p>
+                <p>{t.forms.directContactNote}</p>
+                <p className="font-mono text-[#d8b96d] font-bold text-sm">+52 322 160 6843</p>
               </div>
 
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a
-                  href="/"
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#c5a059] via-[#d8b96d] to-[#9e7c33] text-stone-950 font-bold text-sm hover:brightness-110 transition-all shadow-lg"
+                  href={`https://wa.me/523221606843?text=${encodeURIComponent(
+                    lang === 'es'
+                      ? `Hola Chef Franko, envié una solicitud de reserva desde el sitio web para el ${formData.date} (${formData.guests} comensales).`
+                      : `Hello Chef Franko, I just sent a reservation request via your website for ${formData.date} (${formData.guests} guests).`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-3 rounded-xl bg-[#25D366]/20 border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366]/30 font-bold text-xs flex items-center justify-center gap-2 transition-colors"
                 >
-                  Volver al Inicio
+                  <Phone className="w-4 h-4" />
+                  <span>{t.forms.whatsappDirect}</span>
                 </a>
-                <button
-                  onClick={() => {
-                    setSuccess(false);
-                    setFormData({
-                      clientName: '',
-                      email: '',
-                      phone: '',
-                      date: '',
-                      guests: 6,
-                      serviceName: 'Cena Degustación de Autor 5 Tiempos',
-                      notes: '',
-                    });
-                  }}
-                  className="px-6 py-3 rounded-xl bg-stone-900 border border-stone-700 text-stone-300 text-sm hover:text-white transition-colors"
+                <a
+                  href="/"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#c5a059] via-[#d8b96d] to-[#9e7c33] text-stone-950 font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all shadow-lg"
                 >
-                  Realizar otra cotización
-                </button>
+                  {lang === 'es' ? 'Volver al Inicio' : 'Return Home'}
+                </a>
               </div>
             </div>
           ) : (
@@ -227,7 +238,7 @@ export const ReservationPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-2">
-                    Nombre Completo *
+                    {t.forms.nameLabel} *
                   </label>
                   <div className="relative">
                     <User className="w-4 h-4 text-[#c5a059] absolute left-4 top-3.5" />
@@ -236,7 +247,7 @@ export const ReservationPage: React.FC = () => {
                       name="clientName"
                       autoComplete="name"
                       required
-                      placeholder="Ej. Sarah Thompson"
+                      placeholder={t.forms.namePlaceholder}
                       value={formData.clientName}
                       onChange={e => handleChange('clientName', e.target.value)}
                       className="w-full pl-11 pr-4 py-3 rounded-xl bg-[#1c1b18] border border-stone-700 focus:border-[#c5a059] text-white placeholder-stone-500 text-sm outline-none transition-colors"
@@ -246,7 +257,7 @@ export const ReservationPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-2">
-                    Correo Electrónico *
+                    {t.forms.emailLabel} *
                   </label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-[#c5a059] absolute left-4 top-3.5" />
@@ -255,7 +266,7 @@ export const ReservationPage: React.FC = () => {
                       name="email"
                       autoComplete="email"
                       required
-                      placeholder="nombre@ejemplo.com"
+                      placeholder={t.forms.emailPlaceholder}
                       value={formData.email}
                       onChange={e => handleChange('email', e.target.value)}
                       className="w-full pl-11 pr-4 py-3 rounded-xl bg-[#1c1b18] border border-stone-700 focus:border-[#c5a059] text-white placeholder-stone-500 text-sm outline-none transition-colors"
@@ -267,7 +278,7 @@ export const ReservationPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-2">
-                    Teléfono / WhatsApp *
+                    {t.forms.phoneLabel} *
                   </label>
                   <div className="relative">
                     <Phone className="w-4 h-4 text-[#c5a059] absolute left-4 top-3.5" />
@@ -276,7 +287,7 @@ export const ReservationPage: React.FC = () => {
                       name="phone"
                       autoComplete="tel"
                       required
-                      placeholder="+52 322 000 0000"
+                      placeholder={t.forms.phonePlaceholder}
                       value={formData.phone}
                       onChange={e => handleChange('phone', e.target.value)}
                       className="w-full pl-11 pr-4 py-3 rounded-xl bg-[#1c1b18] border border-stone-700 focus:border-[#c5a059] text-white placeholder-stone-500 text-sm outline-none transition-colors"
@@ -286,7 +297,7 @@ export const ReservationPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-2">
-                    Fecha del Evento *
+                    {t.forms.dateLabel} *
                   </label>
                   <div className="relative">
                     <Calendar className="w-4 h-4 text-[#c5a059] absolute left-4 top-3.5" />
@@ -305,7 +316,7 @@ export const ReservationPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-2">
-                    Comensales *
+                    {t.forms.guestsLabel} *
                   </label>
                   <div className="relative">
                     <Users className="w-4 h-4 text-[#c5a059] absolute left-4 top-3.5" />
@@ -326,31 +337,30 @@ export const ReservationPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-2">
-                  Experiencia o Menú Deseado
+                  {t.forms.serviceLabel}
                 </label>
                 <select
                   value={formData.serviceName}
                   onChange={e => handleChange('serviceName', e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-[#1c1b18] border border-stone-700 focus:border-[#c5a059] text-white text-sm outline-none transition-colors"
                 >
-                  <option value="Cena Degustación de Autor 5 Tiempos">Cena Degustación de Autor 5 Tiempos</option>
-                  <option value="Crème Brûlée de Cangrejo Real (6 Tiempos)">Crème Brûlée de Cangrejo Real (6 Tiempos)</option>
-                  <option value="Belli con Puré de Cebolla Tatemada (5 Tiempos)">Belli con Puré de Cebolla Tatemada (5 Tiempos)</option>
-                  <option value="Banquete Sunset & Gala frente al Mar">Banquete Sunset & Gala frente al Mar</option>
-                  <option value="Servicio de Chef Privado Completo en Villa">Servicio de Chef Privado Completo en Villa</option>
-                  <option value="Catering para Yate Privado">Catering para Yate Privado</option>
+                  {t.forms.servicesList.map(srv => (
+                    <option key={srv} value={srv}>
+                      {srv}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-stone-300 mb-2">
-                  Preferencias, Alergias o Notas Especiales
+                  {t.forms.notesLabel}
                 </label>
                 <div className="relative">
                   <FileText className="w-4 h-4 text-[#c5a059] absolute left-4 top-3.5" />
                   <textarea
                     rows={3}
-                    placeholder="Menciona alergias (mariscos, gluten, frutos secos), requerimientos dietéticos o detalles de tu residencia/villa..."
+                    placeholder={t.forms.notesPlaceholder}
                     value={formData.notes}
                     onChange={e => handleChange('notes', e.target.value)}
                     className="w-full pl-11 pr-4 py-3 rounded-xl bg-[#1c1b18] border border-stone-700 focus:border-[#c5a059] text-white placeholder-stone-500 text-sm outline-none transition-colors resize-none"
@@ -368,15 +378,19 @@ export const ReservationPage: React.FC = () => {
               <div className="pt-4 border-t border-stone-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-xs text-stone-400">
                   <ShieldCheck className="w-4 h-4 text-[#c5a059]" />
-                  <span>Tus datos están protegidos y se guardan automáticamente.</span>
+                  <span>
+                    {lang === 'es'
+                      ? 'Tus datos están protegidos y se guardan automáticamente.'
+                      : 'Your inquiry details are secure and auto-saved.'}
+                  </span>
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-[#c5a059] via-[#d8b96d] to-[#9e7c33] text-stone-950 font-bold text-sm shadow-xl hover:brightness-110 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-[#c5a059] via-[#d8b96d] to-[#9e7c33] text-stone-950 font-bold text-xs uppercase tracking-wider shadow-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  <span>{loading ? 'Enviando Solicitud...' : 'Enviar Solicitud de Cotización'}</span>
+                  <span>{loading ? t.forms.submittingBtn : t.forms.submitBtn}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>

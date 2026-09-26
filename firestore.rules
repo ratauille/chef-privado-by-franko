@@ -8,28 +8,19 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.admin == true;
     }
 
-    // Colección: reservations (Reservas creadas desde el widget web o Cloud Functions)
+    // Colección: reservations (Acceso restringido. Toda reserva pública entra por /api/lead con Admin SDK)
     match /reservations/{reservationId} {
-      // El cliente público solo puede crear reservas si cumple validaciones de tamaño y formato
-      allow create: if request.resource.data.keys().hasAll(['clientName', 'email', 'phone', 'date', 'guests'])
-                   && request.resource.data.clientName is string
-                   && request.resource.data.clientName.size() >= 2
-                   && request.resource.data.clientName.size() <= 100
-                   && request.resource.data.email is string
-                   && request.resource.data.email.size() >= 3
-                   && request.resource.data.email.size() <= 150
-                   && request.resource.data.phone is string
-                   && request.resource.data.phone.size() >= 6
-                   && request.resource.data.phone.size() <= 30
-                   && request.resource.data.date is string
-                   && request.resource.data.date.size() >= 6
-                   && request.resource.data.date.size() <= 50
-                   && (request.resource.data.guests is number || request.resource.data.guests is int)
-                   && request.resource.data.guests >= 1
-                   && request.resource.data.guests <= 200;
-      
-      // Lectura, actualización y eliminación restringidas exclusivamente a cuentas administradoras
-      allow read, update, delete: if isAdmin();
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    // Colección: rate_limits (Solo modificada de forma segura por Firebase Admin SDK en backend)
+    match /rate_limits/{docId} {
+      allow read, write: if false;
+    }
+
+    // Colección: lead_idempotency (Solo modificada de forma segura por Firebase Admin SDK en backend)
+    match /lead_idempotency/{docId} {
+      allow read, write: if false;
     }
 
     // Colección: blockedDates (Fechas no disponibles sincronizadas con Google Calendar)
@@ -44,7 +35,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // Colección: mail (Utilizada por la extensión Trigger Email)
+    // Colección: mail (Utilizada por la extensión Trigger Email / Admin SDK)
     match /mail/{mailId} {
       allow create, read, update, delete: if isAdmin();
     }

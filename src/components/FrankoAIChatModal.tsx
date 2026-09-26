@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Sparkles, Send, Bot, User } from 'lucide-react';
+import { useLanguage } from '../lib/i18n';
 
 interface FrankoAIChatModalProps {
   isOpen: boolean;
@@ -12,14 +13,22 @@ interface Message {
 }
 
 export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, onClose }) => {
+  const { t, lang } = useLanguage();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'ai',
-      text: '¡Hola! Soy Franko AI, el asistente gastronómico personal del Chef Franko Salgado. ¿En qué puedo orientarte hoy sobre nuestras cenas de autor, maridaje o disponibilidad en villa?',
+      text: t.chat.greeting,
     },
   ]);
+
+  // Update greeting when language changes if no conversation happened yet
+  useEffect(() => {
+    if (messages.length === 1 && messages[0].sender === 'ai') {
+      setMessages([{ sender: 'ai', text: t.chat.greeting }]);
+    }
+  }, [lang, t.chat.greeting]);
 
   if (!isOpen) return null;
 
@@ -33,10 +42,26 @@ export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, on
     setLoading(true);
 
     try {
+      let recaptchaToken = '';
+      if (typeof window !== 'undefined' && (window as any).grecaptcha?.enterprise) {
+        try {
+          recaptchaToken = await (window as any).grecaptcha.enterprise.execute(
+            import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n',
+            { action: 'CHAT' }
+          );
+        } catch (err) {
+          console.warn('[reCAPTCHA Enterprise] Notice in Chat:', err);
+        }
+      }
+
       const res = await fetch('/api/assistant/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText }),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(recaptchaToken ? { 'X-ReCaptcha-Token': recaptchaToken } : {}),
+          'X-ReCaptcha-Action': 'CHAT',
+        },
+        body: JSON.stringify({ message: userText, recaptchaToken, lang }),
       });
 
       if (!res.ok) {
@@ -49,7 +74,11 @@ export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, on
       }
 
       const data = await res.json();
-      const reply = data.reply || 'Gracias por tu mensaje. El Chef Franko Salgado se comunicará contigo directamente.';
+      const reply =
+        data.reply ||
+        (lang === 'es'
+          ? 'Gracias por tu consulta. El Chef Franko Salgado se comunicará contigo directamente.'
+          : 'Thank you for your inquiry. Chef Franko Salgado will get back to you directly.');
 
       setMessages(prev => [...prev, { sender: 'ai', text: reply }]);
     } catch (err) {
@@ -57,7 +86,7 @@ export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, on
         ...prev,
         {
           sender: 'ai',
-          text: 'Disculpa, ocurrió un breve inconveniente de red. Por favor escríbenos directamente por WhatsApp para asistirte de inmediato.',
+          text: t.chat.errorMsg,
         },
       ]);
     } finally {
@@ -69,8 +98,8 @@ export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, on
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Asistente Virtual Franko AI"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      aria-label={t.chat.title}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
     >
       <div className="bg-[#141312] border border-stone-800 rounded-3xl shadow-2xl max-w-lg w-full h-[560px] flex flex-col overflow-hidden relative text-stone-100 animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
@@ -80,14 +109,14 @@ export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, on
               <Sparkles className="w-5 h-5 animate-pulse" />
             </div>
             <div>
-              <h3 className="font-serif font-bold text-base text-white">Franko AI</h3>
-              <p className="text-[11px] text-[#c5a059] font-mono">Asistente Gastronómico en Vivo</p>
+              <h3 className="font-serif font-bold text-base text-white">{t.chat.title}</h3>
+              <p className="text-[11px] text-[#c5a059] font-mono">{t.chat.subtitle}</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            aria-label="Cerrar chat con Franko AI"
+            aria-label="Cerrar chat"
             className="text-stone-400 hover:text-white p-2 rounded-full hover:bg-stone-900 border border-transparent hover:border-stone-800 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -126,7 +155,7 @@ export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, on
           {loading && (
             <div className="flex items-center gap-2 text-xs text-stone-400 italic">
               <Sparkles className="w-4 h-4 text-[#c5a059] animate-spin" />
-              <span>Franko AI está redactando tu respuesta...</span>
+              <span>{t.chat.loading}</span>
             </div>
           )}
         </div>
@@ -135,14 +164,14 @@ export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, on
         <form onSubmit={handleSend} className="p-4 bg-[#0a0a0a] border-t border-stone-800 flex items-center gap-2">
           <input
             type="text"
-            placeholder="Pregunta sobre menús, maridajes o servicios..."
+            placeholder={t.chat.placeholder}
             value={input}
             onChange={e => setInput(e.target.value)}
             className="flex-1 px-4 py-3 rounded-xl bg-[#1c1b18] border border-stone-700 focus:border-[#c5a059] text-white placeholder-stone-500 text-xs outline-none transition-colors"
           />
           <button
             type="submit"
-            aria-label="Enviar mensaje a Franko AI"
+            aria-label="Enviar mensaje"
             disabled={loading || !input.trim()}
             className="p-3 rounded-xl bg-gradient-to-r from-[#c5a059] via-[#d8b96d] to-[#9e7c33] text-stone-950 hover:brightness-110 transition-all disabled:opacity-40"
           >
