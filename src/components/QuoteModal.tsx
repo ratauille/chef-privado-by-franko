@@ -51,43 +51,22 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
     setLoading(true);
     setError(null);
 
-    let successSubmitted = false;
-
     try {
-      // Execute reCAPTCHA Enterprise if available
-      let recaptchaToken = '';
-      if (typeof window !== 'undefined' && (window as any).grecaptcha?.enterprise) {
-        try {
-          recaptchaToken = await (window as any).grecaptcha.enterprise.execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n', { action: 'LEAD' });
-        } catch (err) {
-          console.warn('[reCAPTCHA Enterprise] Notice:', err);
-        }
-      }
+      const res = await fetch('https://formspree.io/f/mwlprdwr', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          source: 'quote_modal',
+          landingPage: window.location.href,
+        }),
+      });
 
-      try {
-        const res = await fetch('/api/lead', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(recaptchaToken ? { 'X-ReCaptcha-Token': recaptchaToken } : {}),
-            'X-ReCaptcha-Action': 'LEAD',
-          },
-          body: JSON.stringify(formData),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success) {
-            successSubmitted = true;
-          }
-        }
-      } catch (apiErr) {
-        console.warn('[QuoteModal] /api/lead no disponible:', apiErr);
-      }
-      // Do not bypass the protected endpoint. A failed API/reCAPTCHA request must
-      // remain a visible error instead of silently creating an unverified lead.
-      if (!successSubmitted) {
-        throw new Error('No pudimos enviar tu solicitud de forma segura. Por favor inténtalo nuevamente.');
+      if (!res.ok) {
+        throw new Error('No pudimos enviar tu solicitud. Por favor inténtalo de nuevo o envíala por WhatsApp.');
       }
 
       // Track GA4 conversion event
