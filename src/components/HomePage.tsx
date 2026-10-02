@@ -41,35 +41,35 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onNavigate }) =
           <a href="/" onClick={(event) => go(event, '/')} className="font-serif text-2xl tracking-wide">
             Chef 4 You <span className="ml-1 font-sans text-[10px] font-semibold uppercase tracking-[0.28em] text-[#bfe0dc]">by Franko</span>
           </a>
-          <nav className="hidden items-center gap-9 text-xs font-semibold uppercase tracking-[0.16em] lg:flex">
+          <nav aria-label="Primary navigation" className="hidden items-center gap-9 text-xs font-semibold uppercase tracking-[0.16em] lg:flex">
             <a href="/experiencias" onClick={(event) => go(event, '/experiencias')} className="transition-colors hover:text-[#bfe0dc]">Experiences</a>
             <a href="/chef-franko" onClick={(event) => go(event, '/chef-franko')} className="transition-colors hover:text-[#bfe0dc]">Chef Franko</a>
+            <a href="/menu" onClick={(event) => go(event, '/menu')} className="transition-colors hover:text-[#bfe0dc]">Menus</a>
             <a href="/galeria" onClick={(event) => go(event, '/galeria')} className="transition-colors hover:text-[#bfe0dc]">Gallery</a>
           </nav>
           <div className="flex items-center gap-3">
             <button onClick={onOpenQuote} className="hidden rounded-full border border-white/55 px-6 py-3 text-xs font-bold uppercase tracking-[0.12em] transition hover:bg-white hover:text-[#124e52] sm:inline-flex">
               Request an experience
             </button>
-            <button onClick={() => setMenuOpen((value) => !value)} className="rounded-full border border-white/40 p-2.5 lg:hidden" aria-label="Toggle navigation">
+            <button onClick={() => setMenuOpen((value) => !value)} className="min-h-11 min-w-11 rounded-full border border-white/40 p-2.5 lg:hidden" aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={menuOpen} aria-controls="home-mobile-navigation">
               {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
-        {menuOpen && (
-          <div className="mx-4 rounded-2xl bg-[#0d4145]/95 p-6 shadow-2xl backdrop-blur-xl lg:hidden">
+        <nav id="home-mobile-navigation" aria-label="Mobile navigation" className={`${menuOpen ? 'block' : 'hidden'} mx-4 rounded-2xl bg-[#0d4145]/95 p-6 shadow-2xl backdrop-blur-xl lg:hidden`}>
             <div className="space-y-4 text-sm uppercase tracking-[0.14em]">
-              <a href="/experiencias" onClick={(event) => go(event, '/experiencias')} className="block">Experiences</a>
-              <a href="/chef-franko" onClick={(event) => go(event, '/chef-franko')} className="block">Chef Franko</a>
-              <a href="/galeria" onClick={(event) => go(event, '/galeria')} className="block">Gallery</a>
-              <button onClick={() => { setMenuOpen(false); onOpenQuote(); }} className="w-full rounded-full bg-white px-5 py-3 font-bold text-[#124e52]">Request an experience</button>
+              <a href="/experiencias" onClick={(event) => go(event, '/experiencias')} className="flex min-h-11 items-center">Experiences</a>
+              <a href="/menu" onClick={(event) => go(event, '/menu')} className="flex min-h-11 items-center">Menus</a>
+              <a href="/chef-franko" onClick={(event) => go(event, '/chef-franko')} className="flex min-h-11 items-center">Chef Franko</a>
+              <a href="/galeria" onClick={(event) => go(event, '/galeria')} className="flex min-h-11 items-center">Gallery</a>
+              <button onClick={() => { setMenuOpen(false); onOpenQuote(); }} className="w-full min-h-11 rounded-full bg-white px-5 py-3 font-bold text-[#124e52]">Request an experience</button>
             </div>
-          </div>
-        )}
+        </nav>
       </header>
 
       <main>
         <section className="relative flex min-h-[94vh] items-end overflow-hidden bg-[#0d4145] text-white">
-          <img src="/assets/chef_franko_team.webp" alt="Chef Franko hosting a private dining experience" className="absolute inset-0 h-full w-full object-cover object-center" />
+          <img src="/assets/chef_franko_team.webp" alt="Chef Franko hosting a private dining experience" width="1600" height="900" loading="eager" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-center" />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,42,45,.92)_0%,rgba(7,42,45,.62)_48%,rgba(7,42,45,.18)_100%)]" />
           <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(6,34,37,.65)_0%,transparent_48%)]" />
           <motion.div className="relative mx-auto w-full max-w-[1480px] px-6 pb-16 pt-44 lg:px-12 lg:pb-24" initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9 }}>
@@ -108,7 +108,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onNavigate }) =
             <div className="mt-16 grid gap-7 lg:grid-cols-3">
               {experiences.map((experience, index) => (
                 <motion.article key={experience.title} className="group overflow-hidden rounded-[2rem] bg-white shadow-[0_24px_70px_rgba(25,67,69,.10)]" initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.08 }}>
-                  <div className="h-80 overflow-hidden"><img src={experience.image} alt={experience.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" /></div>
+                  <div className="h-80 overflow-hidden"><img src={experience.image} alt={experience.title} width="800" height="600" loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" /></div>
                   <div className="p-8">
                     <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#0e7778]">0{index + 1} · Signature experience</p>
                     <h3 className="mt-4 font-serif text-3xl text-[#153f42]">{experience.title}</h3>
@@ -123,7 +123,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onNavigate }) =
 
         <section className="bg-[#123f43] px-6 py-24 text-white lg:px-12 lg:py-32">
           <div className="mx-auto grid max-w-[1480px] gap-14 lg:grid-cols-12 lg:items-center">
-            <div className="lg:col-span-5"><img src="/assets/chef_franko_brigada.jpg" alt="Chef Franko and his culinary team" className="h-[560px] w-full rounded-[2.25rem] object-cover shadow-2xl" /></div>
+            <div className="lg:col-span-5"><img src="/assets/chef_franko_portrait.jpg" alt="Retrato del Chef Franko Salgado" width="1254" height="1254" loading="lazy" className="h-[560px] w-full rounded-[2.25rem] object-cover shadow-2xl" /></div>
             <div className="lg:col-span-7 lg:pl-10">
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#9ed3cf]">Chef Franko Salgado</p>
               <h2 className="mt-6 font-serif text-4xl font-light leading-[1.08] sm:text-6xl">Hospitality is not an extra.<br /><span className="italic text-[#bfe0dc]">It is the heart of the experience.</span></h2>
@@ -154,7 +154,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onNavigate }) =
       <footer className="bg-[#082f33] px-6 py-14 text-white/70 lg:px-12">
         <div className="mx-auto flex max-w-[1480px] flex-col justify-between gap-8 border-b border-white/10 pb-10 md:flex-row md:items-end">
           <div><p className="font-serif text-3xl text-white">Chef 4 You <span className="font-sans text-[10px] uppercase tracking-[0.25em] text-[#9ed3cf]">by Franko</span></p><p className="mt-3 max-w-md text-sm leading-6">Private dining, thoughtfully hosted in Puerto Vallarta, Punta Mita and Nuevo Nayarit.</p></div>
-          <div className="flex flex-wrap gap-6 text-xs font-semibold uppercase tracking-[0.14em]"><a href="/experiencias" onClick={(event) => go(event, '/experiencias')}>Experiences</a><a href="/chef-franko" onClick={(event) => go(event, '/chef-franko')}>Chef Franko</a><a href="/galeria" onClick={(event) => go(event, '/galeria')}>Gallery</a></div>
+          <div className="flex flex-wrap gap-6 text-xs font-semibold uppercase tracking-[0.14em]"><a href="/experiencias" onClick={(event) => go(event, '/experiencias')}>Experiences</a><a href="/menu" onClick={(event) => go(event, '/menu')}>Menus</a><a href="/chef-franko" onClick={(event) => go(event, '/chef-franko')}>Chef Franko</a><a href="/galeria" onClick={(event) => go(event, '/galeria')}>Gallery</a></div>
         </div>
         <div className="mx-auto mt-8 flex max-w-[1480px] flex-col justify-between gap-3 text-xs md:flex-row"><span>© {new Date().getFullYear()} Chef 4 You by Franko.</span><span>The Art of Living.</span></div>
       </footer>
