@@ -4,6 +4,22 @@ import { Experiences } from './components/Experiences';
 import { ChefBio } from './components/ChefBio';
 import { Footer } from './components/Footer';
 import { HomePage } from './components/HomePage';
+import { MenuPage } from './components/MenuPage';
+import { pageMetadata, siteUrl } from './lib/pageMetadata';
+
+function setMeta(attribute: 'name' | 'property', key: string, content: string) {
+  let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
+  if (!element) {
+    element = document.createElement('meta');
+    element.setAttribute(attribute, key);
+    document.head.appendChild(element);
+  }
+  element.content = content;
+}
+
+function normalizePathname(pathname: string) {
+  return pathname.replace(/\/+$/, '') || '/';
+}
 
 // Lazy-loaded components for optimal bundle splitting
 const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
@@ -22,17 +38,41 @@ const LoadingSpinner = () => (
 export function App() {
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [aiChatOpen, setAiChatOpen] = useState(false);
-  const [pathname, setPathname] = useState(window.location.pathname);
+  const [pathname, setPathname] = useState(normalizePathname(window.location.pathname));
 
   useEffect(() => {
-    const handlePopState = () => setPathname(window.location.pathname);
+    const handlePopState = () => setPathname(normalizePathname(window.location.pathname));
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  useEffect(() => {
+    const page = pageMetadata[pathname] ?? pageMetadata['/'];
+    const canonicalUrl = `${siteUrl}${pathname === '/' ? '/' : pathname}`;
+
+    document.title = page.title;
+    document.documentElement.lang = page.lang ?? 'es-MX';
+    setMeta('name', 'description', page.description);
+    setMeta('name', 'robots', page.noIndex ? 'noindex, nofollow' : 'index, follow');
+    setMeta('property', 'og:title', page.title);
+    setMeta('property', 'og:description', page.description);
+    setMeta('property', 'og:url', canonicalUrl);
+    setMeta('name', 'twitter:title', page.title);
+    setMeta('name', 'twitter:description', page.description);
+
+    let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = canonicalUrl;
+  }, [pathname]);
+
   const navigateTo = (path: string) => {
-    window.history.pushState({}, '', path);
-    setPathname(path);
+    const normalizedPath = normalizePathname(path);
+    window.history.pushState({}, '', normalizedPath);
+    setPathname(normalizedPath);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -116,7 +156,30 @@ export function App() {
     );
   }
 
-  // Route 5: /reservar
+  // Route 5: /menu
+  if (pathname === '/menu') {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
+        <Navbar
+          currentPath={pathname}
+          onNavigate={navigateTo}
+          onOpenQuote={() => setQuoteOpen(true)}
+          onOpenAI={() => setAiChatOpen(true)}
+        />
+        <main>
+          <MenuPage />
+        </main>
+        <Footer onNavigate={navigateTo} />
+
+        <Suspense fallback={null}>
+          {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
+          {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
+        </Suspense>
+      </div>
+    );
+  }
+
+  // Route 6: /reservar
   if (pathname === '/reservar') {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
@@ -140,7 +203,7 @@ export function App() {
     );
   }
 
-  // Route 6: / (Homepage SPA)
+  // Route 7: / (Homepage SPA)
   return (
     <>
       <HomePage onOpenQuote={() => setQuoteOpen(true)} onNavigate={navigateTo} />

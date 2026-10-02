@@ -5,7 +5,7 @@ interface ChefBioProps { onOpenQuote?:()=>void; isFullView?:boolean; }
 export const ChefBio: React.FC<ChefBioProps> = ({onOpenQuote}) => (
 <section id="chef-franko" className="py-24 bg-[#0a0a0a] text-stone-100 border-b border-stone-800/80">
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-  <motion.div className="lg:col-span-5" initial={{opacity:0,x:-20}} whileInView={{opacity:1,x:0}} viewport={{once:true}}><img src="/assets/chef_franko_brigada.jpg" alt="Chef Franko" loading="lazy" className="w-full h-[520px] object-cover rounded-3xl border border-stone-800"/></motion.div>
+  <motion.div className="lg:col-span-5" initial={{opacity:0,x:-20}} whileInView={{opacity:1,x:0}} viewport={{once:true}}><img src="/assets/chef_franko_portrait.jpg" alt="Retrato del Chef Franko Salgado" width="1254" height="1254" loading="lazy" className="w-full h-[520px] object-cover rounded-3xl border border-stone-800"/></motion.div>
   <motion.div className="lg:col-span-7" initial={{opacity:0,x:20}} whileInView={{opacity:1,x:0}} viewport={{once:true}}>
    <p className="text-xs uppercase tracking-[0.2em] text-[#d8b96d]">Meet Chef Franko</p>
    <h2 className="mt-4 font-serif text-3xl sm:text-5xl font-light text-white">Private dining shaped by <span className="italic text-[#d8b96d]">the people around the table.</span></h2>
