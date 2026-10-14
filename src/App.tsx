@@ -104,6 +104,14 @@ export function App() {
 
         <Suspense fallback={null}>
           {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
+          <button
+            type="button"
+            onClick={() => setAiChatOpen(true)}
+            aria-label="Hablar con Franko AI"
+            className="fixed bottom-6 right-6 z-[9999] rounded-full bg-[#c5a059] px-5 py-4 font-semibold text-black shadow-2xl hover:brightness-110"
+          >
+            ✨ Franko AI
+          </button>
           {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
         </Suspense>
       </div>
@@ -127,6 +135,14 @@ export function App() {
 
         <Suspense fallback={null}>
           {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
+          <button
+            type="button"
+            onClick={() => setAiChatOpen(true)}
+            aria-label="Hablar con Franko AI"
+            className="fixed bottom-6 right-6 z-[9999] rounded-full bg-[#c5a059] px-5 py-4 font-semibold text-black shadow-2xl hover:brightness-110"
+          >
+            ✨ Franko AI
+          </button>
           {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
         </Suspense>
       </div>
@@ -150,6 +166,14 @@ export function App() {
 
         <Suspense fallback={null}>
           {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
+          <button
+            type="button"
+            onClick={() => setAiChatOpen(true)}
+            aria-label="Hablar con Franko AI"
+            className="fixed bottom-6 right-6 z-[9999] rounded-full bg-[#c5a059] px-5 py-4 font-semibold text-black shadow-2xl hover:brightness-110"
+          >
+            ✨ Franko AI
+          </button>
           {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
         </Suspense>
       </div>
@@ -173,6 +197,14 @@ export function App() {
 
         <Suspense fallback={null}>
           {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
+          <button
+            type="button"
+            onClick={() => setAiChatOpen(true)}
+            aria-label="Hablar con Franko AI"
+            className="fixed bottom-6 right-6 z-[9999] rounded-full bg-[#c5a059] px-5 py-4 font-semibold text-black shadow-2xl hover:brightness-110"
+          >
+            ✨ Franko AI
+          </button>
           {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
         </Suspense>
       </div>
@@ -197,6 +229,14 @@ export function App() {
         <Footer onNavigate={navigateTo} />
 
         <Suspense fallback={null}>
+          <button
+            type="button"
+            onClick={() => setAiChatOpen(true)}
+            aria-label="Hablar con Franko AI"
+            className="fixed bottom-6 right-6 z-[9999] rounded-full bg-[#c5a059] px-5 py-4 font-semibold text-black shadow-2xl hover:brightness-110"
+          >
+            ✨ Franko AI
+          </button>
           {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
         </Suspense>
       </div>
