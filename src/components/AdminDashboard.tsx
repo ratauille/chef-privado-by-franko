@@ -3,6 +3,7 @@ import { auth, db } from '../lib/firebase';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { ShieldCheck, LogOut, Search, Trash2, CheckCircle2, MessageSquare, ArrowRight, Lock } from 'lucide-react';
+import { AdminQuoteCalculator } from './AdminQuoteCalculator';
 
 export const AdminDashboard: React.FC = () => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -190,6 +191,7 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <AdminQuoteCalculator />
         {/* Table & Controls */}
         <div className="bg-white border border-stone-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="p-4 sm:p-6 border-b border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-4">

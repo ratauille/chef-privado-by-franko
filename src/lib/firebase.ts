@@ -3,7 +3,7 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getMessaging, isSupported as isMessagingSupported } from 'firebase/messaging';
 import { getAnalytics, isSupported as isAnalyticsSupported } from 'firebase/analytics';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from 'firebase/app-check';
+import { AppCheck, getToken, initializeAppCheck, ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from 'firebase/app-check';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyD9tVah09y2Zh_tJQobgBwU4TrTjaFUPbM',
@@ -22,8 +22,11 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
+let appCheckInstance: AppCheck | null = null;
+
 // App Check singleton initialization wrapper
 export const initAppCheck = (recaptchaSiteKey?: string) => {
+  if (appCheckInstance) return appCheckInstance;
   const siteKey = recaptchaSiteKey || import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n';
   
   if (import.meta.env.DEV || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
@@ -34,16 +37,24 @@ export const initAppCheck = (recaptchaSiteKey?: string) => {
   }
 
   try {
-    return initializeAppCheck(app, {
+    appCheckInstance = initializeAppCheck(app, {
       provider: new ReCaptchaEnterpriseProvider(siteKey),
       isTokenAutoRefreshEnabled: true,
     });
   } catch (e) {
-    return initializeAppCheck(app, {
+    appCheckInstance = initializeAppCheck(app, {
       provider: new ReCaptchaV3Provider(siteKey),
       isTokenAutoRefreshEnabled: true,
     });
   }
+  return appCheckInstance;
+};
+
+export const getAppCheckToken = async (): Promise<string> => {
+  const instance = appCheckInstance || initAppCheck();
+  const result = await getToken(instance, false);
+  if (!result.token) throw new Error('No se obtuvo un token App Check válido.');
+  return result.token;
 };
 
 // Messaging singleton wrapper for browser push notifications

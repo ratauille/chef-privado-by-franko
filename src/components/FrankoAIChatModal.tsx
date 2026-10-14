@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Send, Bot, User } from 'lucide-react';
+import { chefWhatsAppUrl } from '../lib/leadFallback';
+import { getAppCheckToken } from '../lib/firebase';
 
 interface FrankoAIChatModalProps {
   isOpen: boolean;
@@ -11,9 +13,20 @@ interface Message {
   text: string;
 }
 
+type ChatLanguage = 'es' | 'en';
+
+function contextualWhatsAppUrl(language: ChatLanguage, question: string): string {
+  const prefix = language === 'en'
+    ? "Hi Chef Franko, I'd like help with this request:"
+    : 'Hola Chef Franko, me gustaría recibir ayuda con esta solicitud:';
+  return chefWhatsAppUrl(`${prefix}\n${question}`);
+}
+
 export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, onClose }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [language, setLanguage] = useState<ChatLanguage>('es');
+  const [lastQuestion, setLastQuestion] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'ai',
@@ -30,13 +43,15 @@ export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, on
 
     setMessages(prev => [...prev, { sender: 'user', text: userText }]);
     setInput('');
+    setLastQuestion(userText);
     setLoading(true);
 
     try {
+      const appCheckToken = await getAppCheckToken();
       const res = await fetch('/api/assistant/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText }),
+        headers: { 'Content-Type': 'application/json', 'X-Firebase-AppCheck': appCheckToken },
+        body: JSON.stringify({ message: userText, language }),
       });
 
       if (!res.ok) {
@@ -85,13 +100,25 @@ export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, on
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            aria-label="Cerrar chat con Franko AI"
-            className="text-stone-400 hover:text-white p-2 rounded-full hover:bg-stone-900 border border-transparent hover:border-stone-800 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <label className="sr-only" htmlFor="franko-ai-language">Idioma del asistente</label>
+            <select
+              id="franko-ai-language"
+              value={language}
+              onChange={e => setLanguage(e.target.value as ChatLanguage)}
+              className="rounded-lg border border-stone-700 bg-[#1c1b18] px-2 py-1 text-[10px] text-stone-200 outline-none focus:border-[#c5a059]"
+            >
+              <option value="es">ES</option>
+              <option value="en">EN</option>
+            </select>
+            <button
+              onClick={onClose}
+              aria-label="Cerrar chat con Franko AI"
+              className="text-stone-400 hover:text-white p-2 rounded-full hover:bg-stone-900 border border-transparent hover:border-stone-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Chat Messages Body */}
@@ -128,6 +155,17 @@ export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, on
               <Sparkles className="w-4 h-4 text-[#c5a059] animate-spin" />
               <span>Franko AI está redactando tu respuesta...</span>
             </div>
+          )}
+
+          {lastQuestion && !loading && (
+            <a
+              href={contextualWhatsAppUrl(language, lastQuestion)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-lg border border-[#c5a059]/50 px-3 py-2 text-[11px] text-[#d8b96d] hover:bg-[#1c1b18]"
+            >
+              {language === 'en' ? 'Continue on WhatsApp' : 'Continuar por WhatsApp'}
+            </a>
           )}
         </div>
 

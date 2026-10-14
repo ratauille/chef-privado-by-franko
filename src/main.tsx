@@ -3,8 +3,17 @@ import React, { Component, ReactNode } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { initAppCheck } from './lib/firebase';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '';
+
+if (!import.meta.env.DEV) {
+  try {
+    initAppCheck();
+  } catch (error) {
+    console.error('[AppCheck] No se pudo inicializar la protección del cliente.', error);
+  }
+}
 
 interface ErrorBoundaryProps {
   children: ReactNode;

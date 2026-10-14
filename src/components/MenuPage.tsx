@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MessageCircle, Search, Users } from 'lucide-react';
+import { CHEF_WHATSAPP_NUMBER } from '../lib/leadFallback';
 
 type Menu = {
   id: string;
@@ -127,7 +128,7 @@ const cuisineOptions = [
 ];
 
 const priceFormatter = new Intl.NumberFormat('es-MX');
-const whatsappNumber = '523221606843';
+const whatsappNumber = CHEF_WHATSAPP_NUMBER;
 
 function getWhatsAppLink(menu: Menu) {
   const message = `Hola Chef Franko, me interesa reservar el menú ${menu.title} ($${priceFormatter.format(menu.price)} MXN por persona, de 2 a 20 personas). ¿Tienen disponibilidad?`;
