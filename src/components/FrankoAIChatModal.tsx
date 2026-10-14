@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Send, Bot, User } from 'lucide-react';
 import { chefWhatsAppUrl } from '../lib/leadFallback';
+import { getAppCheckToken } from '../lib/firebase';
 
 interface FrankoAIChatModalProps {
   isOpen: boolean;
@@ -46,9 +47,10 @@ export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({ isOpen, on
     setLoading(true);
 
     try {
+      const appCheckToken = await getAppCheckToken();
       const res = await fetch('/api/assistant/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Firebase-AppCheck': appCheckToken },
         body: JSON.stringify({ message: userText, language }),
       });
 

@@ -1,5 +1,8 @@
 import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
+import { getAppCheck } from 'firebase-admin/app-check';
+import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { getMessaging } from 'firebase-admin/messaging';
 import axios from 'axios';
 import { google } from 'googleapis';
 import { GoogleGenAI } from '@google/genai';
@@ -7,7 +10,7 @@ import { v1 as recaptchaEnterprise } from '@google-cloud/recaptcha-enterprise';
 import * as crypto from 'crypto';
 
 admin.initializeApp();
-const db = admin.firestore();
+const db = getFirestore();
 const recaptchaClient = new recaptchaEnterprise.RecaptchaEnterpriseServiceClient();
 const recaptchaSiteKey = process.env.RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n';
 const recaptchaProjectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || 'chef-privado';
@@ -62,9 +65,12 @@ async function verifyRecaptchaToken(token: string, expectedAction: string): Prom
  */
 async function isRateLimited(req: functions.https.Request, actionName: string, maxRequests: number = 10, windowMinutes: number = 15): Promise<boolean> {
   try {
-    const rawIp = (req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || '127.0.0.1').split(',')[0].trim();
+    // Firebase's Express adapter derives req.ip from its trusted edge proxy.
+    // Never parse X-Forwarded-For directly: clients can spoof that header.
+    const sourceIp = req.ip;
+    if (!sourceIp) throw new Error('No se pudo identificar el origen de la solicitud.');
     const windowKey = Math.floor(Date.now() / (windowMinutes * 60 * 1000));
-    const ipHash = crypto.createHash('sha256').update(`${rawIp}-${windowKey}-${actionName}`).digest('hex').slice(0, 16);
+    const ipHash = crypto.createHash('sha256').update(`${sourceIp}-${windowKey}-${actionName}`).digest('hex').slice(0, 16);
 
     const docRef = db.collection('rate_limits').doc(`${actionName}_${ipHash}`);
     const docSnap = await docRef.get();
@@ -72,7 +78,7 @@ async function isRateLimited(req: functions.https.Request, actionName: string, m
     if (!docSnap.exists) {
       await docRef.set({
         count: 1,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
         expiresAt: new Date(Date.now() + windowMinutes * 60 * 1000),
       });
       return false;
@@ -85,13 +91,25 @@ async function isRateLimited(req: functions.https.Request, actionName: string, m
     }
 
     await docRef.update({
-      count: admin.firestore.FieldValue.increment(1),
+      count: FieldValue.increment(1),
     });
 
     return false;
   } catch (err) {
     functions.logger.error('[RateLimit] Error verificando rate limit en Firestore:', err);
-    return false;
+    throw new Error('Rate limiter unavailable; request denied.');
+  }
+}
+
+async function requireAppCheck(req: functions.https.Request): Promise<string> {
+  const token = String(req.headers['x-firebase-appcheck'] || '').trim();
+  if (!token) throw new Error('App Check token missing.');
+  try {
+    const claims = await getAppCheck().verifyToken(token);
+    return claims.appId;
+  } catch (err) {
+    functions.logger.warn('[AppCheck] Token inválido o ausente.', err);
+    throw new Error('App Check verification failed.');
   }
 }
 
@@ -116,11 +134,11 @@ async function saveLeadOnce(cleanData: any): Promise<{ id: string; duplicate: bo
     }
     transaction.set(reservationRef, {
       ...cleanData,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
       status: 'pending',
     });
     transaction.set(markerRef, {
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
       reservationId: reservationRef.id,
     });
     return { id: reservationRef.id, duplicate: false };
@@ -267,7 +285,7 @@ Responde UNICAMENTE con el objeto JSON.
           pitchSummary: escapeHtml(aiData.pitchSummary || ''),
           suggestedWhatsappMsg: escapeHtml(aiData.suggestedWhatsappMsg || ''),
         },
-        aiProcessedAt: admin.firestore.FieldValue.serverTimestamp(),
+        aiProcessedAt: FieldValue.serverTimestamp(),
       }, { merge: true });
       functions.logger.info(`Análisis Gemini AI completado para reserva ${reservationId}`);
       return aiData;
@@ -369,7 +387,7 @@ export const onReservationCreated = functions.runWith({ secrets: ['GEMINI_API_KE
       const tokens = adminTokensSnapshot.docs.map((doc) => doc.data().token).filter(Boolean);
 
       if (tokens.length > 0) {
-        await admin.messaging().sendEachForMulticast({
+        await getMessaging().sendEachForMulticast({
           tokens: tokens,
           notification: {
             title: '👨‍🍳 Nueva Reserva Recibida',
@@ -451,7 +469,7 @@ export const apiLead = functions.https.onRequest(async (req, res) => {
 /**
  * 3. ENDPOINT HTTPS /api/assistant/chat - Franko AI Assistant Widget (Protegido & Rate Limited)
  */
-export const apiAssistantChat = functions.runWith({ secrets: ['GEMINI_API_KEY'] }).https.onRequest(async (req, res) => {
+export const apiAssistantChat = functions.runWith({ secrets: ['GEMINI_API_KEY'], maxInstances: 3, timeoutSeconds: 30 }).https.onRequest(async (req, res) => {
   setCorsHeaders(req, res);
 
   if (req.method === 'OPTIONS') {
@@ -465,6 +483,8 @@ export const apiAssistantChat = functions.runWith({ secrets: ['GEMINI_API_KEY'] 
   }
 
   try {
+    const appId = await requireAppCheck(req);
+    functions.logger.debug(`[AppCheck] Chat request accepted for app ${appId}.`);
     // Rate Limiting (Máx 10 consultas por 15 min por IP hash)
     if (await isRateLimited(req, 'apiAssistantChat', 10, 15)) {
       res.status(429).json({ error: 'Has alcanzado el límite de consultas al asistente. Por favor contáctanos por WhatsApp al +52 322 160 6843.' });
@@ -566,7 +586,7 @@ export const handleNewBooking = functions.https.onRequest(async (req, res) => {
 
     const docRef = await db.collection('reservations').add({
       ...validation.cleanData,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
       status: 'pending',
     });
 
@@ -629,7 +649,7 @@ export const syncGoogleCalendar = functions.runWith({
           blockedDatesBatch.set(docRef, {
             date: startDate,
             summary: escapeHtml(event.summary || 'Fecha Ocupada / Bloqueada'),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
             source: 'GoogleCalendarSync',
           });
         }
