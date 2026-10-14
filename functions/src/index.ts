@@ -482,6 +482,7 @@ export const apiAssistantChat = functions.runWith({ secrets: ['GEMINI_API_KEY'] 
     }
 
     const message = String(req.body?.message || req.body?.prompt || '').trim();
+    const language = req.body?.language === 'en' ? 'en' : 'es';
     if (!message || message.length > 500) {
       res.status(400).json({ error: 'El mensaje debe contener entre 1 y 500 caracteres.' });
       return;
@@ -497,9 +498,10 @@ export const apiAssistantChat = functions.runWith({ secrets: ['GEMINI_API_KEY'] 
     }
 
     const ai = new GoogleGenAI({ apiKey });
+    const responseLanguage = language === 'en' ? 'English' : 'Spanish';
     const prompt = `
 Eres Franko AI, el asistente virtual gastronómico de "Chef4You by Franko Salgado" en Puerto Vallarta y Riviera Nayarit.
-Responde de forma concisa, educada, elegante y atenta a la siguiente consulta del cliente:
+Responde en ${responseLanguage}, de forma concisa, educada, elegante y atenta a la siguiente consulta del cliente:
 "${escapeHtml(message)}"
 
 Información clave sobre Chef Franko:
@@ -507,8 +509,8 @@ Información clave sobre Chef Franko:
 - Zonas de cobertura: Puerto Vallarta, Punta Mita, Sayulita, Nuevo Vallarta, Riviera Nayarit.
 - Formación: Le Cordon Bleu París, ex Chef Ejecutivo Four Seasons.
 - Contacto WhatsApp: +52 322 160 6843.
-- Invita amablemente al cliente a cotizar su evento usando el formulario del sitio o enviando un mensaje directo.
-Responde directamente en español en máximo 3 párrafos cortos.
+- Invita amablemente al cliente a cotizar su evento usando el formulario del sitio o enviando un mensaje directo por WhatsApp.
+Responde directamente en ${responseLanguage} en máximo 3 párrafos cortos. No inventes precios ni confirmes disponibilidad.
 `;
 
     const response = await ai.models.generateContent({
