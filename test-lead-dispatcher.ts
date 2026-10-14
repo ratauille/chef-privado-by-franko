@@ -355,3 +355,83 @@ test('15. generateLeadId no invoca Math.random bajo ninguna circunstancia (Cript
   }
 });
 
+test('16. Falla controlada sin API criptográfica segura: rechaza solicitud sin despachar a la red', async () => {
+  const originalCrypto = globalThis.crypto;
+  let networkDispatched = false;
+
+  const mockFetch: typeof fetch = async () => {
+    networkDispatched = true;
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  };
+
+  try {
+    // Simular entorno sin API crypto
+    Object.defineProperty(globalThis, 'crypto', {
+      value: undefined,
+      configurable: true,
+      writable: true,
+    });
+
+    // 1. generateLeadId debe lanzar error controlado
+    assert.throws(
+      () => generateLeadId(),
+      /API criptográfica segura no disponible/
+    );
+
+    // 2. dispatchLead sin lead_id previo no debe contactar la red ante falta de criptografía
+    const result = await dispatchLead(
+      { ...baseLead, lead_id: undefined },
+      { fetchImpl: mockFetch }
+    );
+
+    assert.equal(result.success, false);
+    assert.equal(result.channel, 'none');
+    assert.match(result.error || '', /criptográfica/i);
+    assert.equal(networkDispatched, false, 'No debio existir envio a la red sin identificador criptografico');
+  } finally {
+    // Restaurar crypto
+    Object.defineProperty(globalThis, 'crypto', {
+      value: originalCrypto,
+      configurable: true,
+      writable: true,
+    });
+  }
+});
+
+test('17. Renovación de lead_id para una cotización nueva después de un envío exitoso', async () => {
+  // Cotización 1
+  const firstLeadId = generateLeadId();
+  let firstDispatchedId = '';
+  let secondDispatchedId = '';
+
+  const mockFetch: typeof fetch = async (_url, init) => {
+    const body = JSON.parse(String(init?.body));
+    if (!firstDispatchedId) {
+      firstDispatchedId = body.lead_id;
+    } else {
+      secondDispatchedId = body.lead_id;
+    }
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  };
+
+  const result1 = await dispatchLead(
+    { ...baseLead, lead_id: firstLeadId },
+    { fetchImpl: mockFetch }
+  );
+  assert.equal(result1.success, true);
+  assert.equal(firstDispatchedId, firstLeadId);
+
+  // Simulación del reseteo del formulario tras éxito (como en QuoteModal / ReservationPage)
+  const secondLeadId = generateLeadId();
+  assert.notEqual(secondLeadId, firstLeadId, 'El nuevo lead_id generado tras el éxito debe ser diferente');
+
+  const result2 = await dispatchLead(
+    { ...baseLead, clientName: 'Nueva Cotización Comensal', lead_id: secondLeadId },
+    { fetchImpl: mockFetch }
+  );
+  assert.equal(result2.success, true);
+  assert.equal(secondDispatchedId, secondLeadId);
+  assert.notEqual(firstDispatchedId, secondDispatchedId, 'Las dos solicitudes deben tener identificadores completamente independientes');
+});
+
+

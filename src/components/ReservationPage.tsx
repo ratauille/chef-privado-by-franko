@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCircle, Sparkles, ShieldCheck, Clock, ArrowRight } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -12,6 +12,7 @@ const SMS_REMINDER_SCRIPT_ID = 'smsreminder-inline-button-script';
 
 export const ReservationPage: React.FC = () => {
   const today = new Date().toISOString().split('T')[0];
+  const submittingRef = useRef(false);
 
   const [formData, setFormData] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -71,7 +72,8 @@ export const ReservationPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return; // Protección estricta contra doble clic
+    if (submittingRef.current || loading) return; // Protección estricta contra doble clic
+    submittingRef.current = true;
     setLoading(true);
     setError(null);
 
@@ -105,6 +107,7 @@ export const ReservationPage: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'Ocurrió un error al enviar tu solicitud. Se han conservado tus datos para que reintentes.');
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   };
@@ -188,7 +191,12 @@ export const ReservationPage: React.FC = () => {
                 <button
                   onClick={() => {
                     setSuccess(false);
+                    let freshLeadId = '';
+                    try {
+                      freshLeadId = generateLeadId();
+                    } catch (e) {}
                     setFormData({
+                      lead_id: freshLeadId,
                       clientName: '',
                       email: '',
                       phone: '',

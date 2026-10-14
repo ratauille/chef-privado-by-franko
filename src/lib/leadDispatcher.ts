@@ -41,8 +41,9 @@ export interface LeadDispatcherOptions {
 
 /**
  * Genera un identificador único criptográficamente seguro para el lead.
- * Utiliza crypto.randomUUID() o crypto.getRandomValues() como alternativa criptográfica.
- * Cero uso de Math.random().
+ * Utiliza crypto.randomUUID() o crypto.getRandomValues().
+ * Si no existe una API criptográfica segura, falla de forma controlada lanzando un error.
+ * Cero uso de Math.random() y cero fallback inseguro basado únicamente en tiempo.
  */
 export function generateLeadId(): string {
   const timestamp = Date.now();
@@ -57,11 +58,7 @@ export function generateLeadId(): string {
       return `lead_${timestamp}_${hex}`;
     }
   }
-  // En caso extremo sin API crypto en el contexto, genera identificador basado en timestamp de alta resolución
-  const hrTime = typeof performance !== 'undefined' && typeof performance.now === 'function'
-    ? Math.floor(performance.now() * 1000).toString(16)
-    : timestamp.toString(16);
-  return `lead_${timestamp}_cs_${hrTime}`;
+  throw new Error('API criptográfica segura no disponible en este entorno. No se puede generar un lead_id seguro.');
 }
 
 export const FORMSPREE_DEFAULT_ENDPOINT = 'https://formspree.io/f/mwlprdwr';
@@ -75,7 +72,31 @@ export async function dispatchLead(
   options: LeadDispatcherOptions = {}
 ): Promise<LeadDispatchResult> {
   const fetchFn = options.fetchImpl || fetch;
-  const leadId = leadData.lead_id || generateLeadId();
+  
+  let leadId = leadData.lead_id;
+  if (!leadId) {
+    try {
+      leadId = generateLeadId();
+    } catch (cryptoErr: any) {
+      return {
+        success: false,
+        leadId: '',
+        channel: 'none',
+        error: 'No se puede procesar la solicitud: el entorno no dispone de una API criptográfica segura para generar el identificador.',
+      };
+    }
+  }
+
+  // Validación estricta de seguridad: el leadId debe cumplir formato seguro y no estar vacío
+  if (!/^lead_[a-z0-9_\-]+$/i.test(leadId)) {
+    return {
+      success: false,
+      leadId: leadId || '',
+      channel: 'none',
+      error: 'Identificador de lead inválido o inseguro. Solicitud cancelada por seguridad.',
+    };
+  }
+
   const formspreeUrl = options.formspreeEndpoint || FORMSPREE_DEFAULT_ENDPOINT;
   const apiLeadUrl = options.apiLeadEndpoint || API_LEAD_DEFAULT_ENDPOINT;
   
