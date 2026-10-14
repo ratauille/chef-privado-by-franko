@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { leadWhatsAppUrl } from '../lib/leadFallback';
+import { dispatchLead, generateLeadId } from '../lib/leadDispatcher';
 
 interface QuoteModalProps {
   isOpen: boolean;
@@ -13,15 +14,23 @@ const DRAFT_KEY = 'chef4you_quote_modal_draft';
 
 export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
   const today = new Date().toISOString().split('T')[0];
+  const submittingRef = useRef(false);
 
   const [formData, setFormData] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem(DRAFT_KEY);
-        if (saved) return JSON.parse(saved);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return {
+            ...parsed,
+            lead_id: parsed.lead_id || generateLeadId(),
+          };
+        }
       } catch (e) {}
     }
     return {
+      lead_id: generateLeadId(),
       clientName: '',
       email: '',
       phone: '',
@@ -36,6 +45,36 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const resetFormWithFreshId = () => {
+    try {
+      setFormData({
+        lead_id: generateLeadId(),
+        clientName: '',
+        email: '',
+        phone: '',
+        date: '',
+        guests: 6,
+        serviceName: 'Cena Degustación de Autor 5 Tiempos',
+        notes: '',
+      });
+    } catch (e) {}
+  };
+
+  const handleModalClose = () => {
+    if (success) {
+      setSuccess(false);
+      resetFormWithFreshId();
+    }
+    onClose();
+  };
+
+  useEffect(() => {
+    if (isOpen && success) {
+      setSuccess(false);
+      resetFormWithFreshId();
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (typeof window !== 'undefined' && isOpen && !success) {
       try {
@@ -48,33 +87,29 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingRef.current || loading) return; // Protección estricta e instantánea contra doble clic
+    submittingRef.current = true;
     setLoading(true);
     setError(null);
 
     try {
-      const res = await fetch('https://formspree.io/f/mwlprdwr', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          source: 'quote_modal',
-          landingPage: window.location.href,
-        }),
+      const result = await dispatchLead({
+        ...formData,
+        source: 'quote_modal',
+        landingPage: typeof window !== 'undefined' ? window.location.href : '',
       });
 
-      if (!res.ok) {
-        throw new Error('No pudimos enviar tu solicitud. Por favor inténtalo de nuevo o envíala por WhatsApp.');
+      if (!result.success) {
+        throw new Error(result.error || 'No pudimos enviar tu solicitud. Por favor inténtalo de nuevo o envíala por WhatsApp.');
       }
 
-      // Track GA4 conversion event
+      // Track GA4 conversion event una sola vez tras confirmacion de exito
       if (typeof (window as any).trackGA4Event === 'function') {
         (window as any).trackGA4Event('generate_lead', {
           event_category: 'ReservationModal',
           event_label: formData.serviceName,
           value: formData.guests,
+          lead_id: result.leadId,
         });
       }
 
@@ -86,6 +121,7 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
     } catch (err: any) {
       setError(err.message || 'Ocurrió un error al enviar la reserva.');
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   };
@@ -101,7 +137,7 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="bg-[#0a0a0a] border-b border-stone-800 p-6 sm:p-8 relative">
           <button
-            onClick={onClose}
+            onClick={handleModalClose}
             aria-label="Cerrar modal de cotización"
             className="absolute top-6 right-6 text-stone-400 hover:text-white p-2 rounded-full hover:bg-stone-900 border border-transparent hover:border-stone-800 transition-colors"
           >
@@ -136,7 +172,7 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
                 Hemos registrado tu solicitud para el día <strong className="text-[#d8b96d]">{formData.date}</strong>. El Chef Franko Salgado se pondrá en contacto contigo a la brevedad.
               </p>
               <button
-                onClick={onClose}
+                onClick={handleModalClose}
                 className="mt-4 px-8 py-3 rounded-xl bg-gradient-to-r from-[#c5a059] to-[#9e7c33] text-stone-950 font-bold text-xs shadow-md"
               >
                 Cerrar Ventana
