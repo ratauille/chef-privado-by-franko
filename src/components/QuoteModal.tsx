@@ -3,7 +3,7 @@ import { X, Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCir
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { leadWhatsAppUrl } from '../lib/leadFallback';
-import { dispatchLead } from '../lib/leadDispatcher';
+import { dispatchLead, generateLeadId } from '../lib/leadDispatcher';
 
 interface QuoteModalProps {
   isOpen: boolean;
@@ -19,10 +19,17 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem(DRAFT_KEY);
-        if (saved) return JSON.parse(saved);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return {
+            ...parsed,
+            lead_id: parsed.lead_id || generateLeadId(),
+          };
+        }
       } catch (e) {}
     }
     return {
+      lead_id: generateLeadId(),
       clientName: '',
       email: '',
       phone: '',
@@ -49,6 +56,7 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // Protección estricta contra doble clic
     setLoading(true);
     setError(null);
 
@@ -63,7 +71,7 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
         throw new Error(result.error || 'No pudimos enviar tu solicitud. Por favor inténtalo de nuevo o envíala por WhatsApp.');
       }
 
-      // Track GA4 conversion event
+      // Track GA4 conversion event una sola vez tras confirmacion de exito
       if (typeof (window as any).trackGA4Event === 'function') {
         (window as any).trackGA4Event('generate_lead', {
           event_category: 'ReservationModal',

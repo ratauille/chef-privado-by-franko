@@ -41,16 +41,27 @@ export interface LeadDispatcherOptions {
 
 /**
  * Genera un identificador único criptográficamente seguro para el lead.
- * Utiliza crypto.randomUUID() para garantizar unicidad e invulnerabilidad a colisiones.
+ * Utiliza crypto.randomUUID() o crypto.getRandomValues() como alternativa criptográfica.
+ * Cero uso de Math.random().
  */
 export function generateLeadId(): string {
   const timestamp = Date.now();
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return `lead_${timestamp}_${crypto.randomUUID()}`;
+  if (typeof crypto !== 'undefined') {
+    if (typeof crypto.randomUUID === 'function') {
+      return `lead_${timestamp}_${crypto.randomUUID()}`;
+    }
+    if (typeof crypto.getRandomValues === 'function') {
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+      return `lead_${timestamp}_${hex}`;
+    }
   }
-  // Fallback seguro en caso de entornos sin crypto.randomUUID
-  const randomPart = Math.random().toString(36).substring(2, 10);
-  return `lead_${timestamp}_${randomPart}`;
+  // En caso extremo sin API crypto en el contexto, genera identificador basado en timestamp de alta resolución
+  const hrTime = typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? Math.floor(performance.now() * 1000).toString(16)
+    : timestamp.toString(16);
+  return `lead_${timestamp}_cs_${hrTime}`;
 }
 
 export const FORMSPREE_DEFAULT_ENDPOINT = 'https://formspree.io/f/mwlprdwr';

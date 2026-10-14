@@ -4,7 +4,7 @@ import { Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCircle
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { leadWhatsAppUrl } from '../lib/leadFallback';
-import { dispatchLead } from '../lib/leadDispatcher';
+import { dispatchLead, generateLeadId } from '../lib/leadDispatcher';
 
 const DRAFT_KEY = 'chef4you_reservation_draft_v1';
 const SMS_REMINDER_BOOKING_URL = 'https://www.smsreminder.co/book/tiVbGssvDw6CtX6t/franko-salgado?utm_source=inline-button-embed&utm_medium=embed';
@@ -17,12 +17,19 @@ export const ReservationPage: React.FC = () => {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem(DRAFT_KEY);
-        if (saved) return JSON.parse(saved);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return {
+            ...parsed,
+            lead_id: parsed.lead_id || generateLeadId(),
+          };
+        }
       } catch (e) {
         console.warn('Could not restore reservation draft from localStorage');
       }
     }
     return {
+      lead_id: generateLeadId(),
       clientName: '',
       email: '',
       phone: '',
@@ -64,6 +71,7 @@ export const ReservationPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // Protección estricta contra doble clic
     setLoading(true);
     setError(null);
 
@@ -78,7 +86,7 @@ export const ReservationPage: React.FC = () => {
         throw new Error(result.error || 'No pudimos enviar tu solicitud. Por favor inténtalo de nuevo o envíala por WhatsApp.');
       }
 
-      // Track GA4 event
+      // Track GA4 event una sola vez tras confirmacion de exito
       if (typeof (window as any).trackGA4Event === 'function') {
         (window as any).trackGA4Event('generate_lead', {
           event_category: 'ReservationPage',

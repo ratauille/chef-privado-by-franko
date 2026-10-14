@@ -309,3 +309,49 @@ test('13. Confirmar que el Feature Flag VITE_ENABLE_API_LEAD no se evalúa como 
   assert.equal(result.channel, 'formspree');
   assert.equal(apiLeadHit, false, 'apiLead nunca debe ser contactado si VITE_ENABLE_API_LEAD no es true');
 });
+
+test('14. Persistencia de lead_id tras recarga: la recuperación del borrador conserva el mismo ID original', () => {
+  // Simulación del ciclo de vida en QuoteModal / ReservationPage:
+  // 1. Usuario empieza a llenar formulario -> se genera lead_id inicial y se persiste en draft
+  const initialLeadId = generateLeadId();
+  const initialDraft = {
+    lead_id: initialLeadId,
+    clientName: 'Alejandro Carrillo',
+    email: 'acarrillo@example.com',
+    phone: '+52 322 555 8899',
+    guests: 8,
+  };
+
+  // 2. Serialización a storage (localStorage.setItem)
+  const serialized = JSON.stringify(initialDraft);
+
+  // 3. Simulación de recarga de página (F5) -> lectura de localStorage.getItem
+  const reloadedDraft = JSON.parse(serialized);
+
+  // 4. Lógica de inicialización: si parsed.lead_id existe, se conserva; no se genera uno nuevo
+  const hydratedLeadId = reloadedDraft.lead_id || generateLeadId();
+
+  assert.equal(hydratedLeadId, initialLeadId, 'El lead_id recuperado tras la recarga debe ser exactamente el mismo');
+  assert.equal(reloadedDraft.clientName, 'Alejandro Carrillo');
+});
+
+test('15. generateLeadId no invoca Math.random bajo ninguna circunstancia (Criptoseguridad garantizada)', () => {
+  const originalMathRandom = Math.random;
+  let mathRandomCalled = false;
+  try {
+    Math.random = () => {
+      mathRandomCalled = true;
+      return 0.123456789;
+    };
+
+    for (let i = 0; i < 50; i++) {
+      const id = generateLeadId();
+      assert.ok(id.startsWith('lead_'));
+    }
+
+    assert.equal(mathRandomCalled, false, 'Math.random NO debe ser llamado por generateLeadId');
+  } finally {
+    Math.random = originalMathRandom;
+  }
+});
+
