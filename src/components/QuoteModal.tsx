@@ -3,6 +3,7 @@ import { X, Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCir
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { leadWhatsAppUrl } from '../lib/leadFallback';
+import { dispatchLead } from '../lib/leadDispatcher';
 
 interface QuoteModalProps {
   isOpen: boolean;
@@ -52,21 +53,14 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
     setError(null);
 
     try {
-      const res = await fetch('https://formspree.io/f/mwlprdwr', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          source: 'quote_modal',
-          landingPage: window.location.href,
-        }),
+      const result = await dispatchLead({
+        ...formData,
+        source: 'quote_modal',
+        landingPage: typeof window !== 'undefined' ? window.location.href : '',
       });
 
-      if (!res.ok) {
-        throw new Error('No pudimos enviar tu solicitud. Por favor inténtalo de nuevo o envíala por WhatsApp.');
+      if (!result.success) {
+        throw new Error(result.error || 'No pudimos enviar tu solicitud. Por favor inténtalo de nuevo o envíala por WhatsApp.');
       }
 
       // Track GA4 conversion event
@@ -75,6 +69,7 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
           event_category: 'ReservationModal',
           event_label: formData.serviceName,
           value: formData.guests,
+          lead_id: result.leadId,
         });
       }
 

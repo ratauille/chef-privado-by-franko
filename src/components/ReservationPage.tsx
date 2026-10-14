@@ -4,6 +4,7 @@ import { Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCircle
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { leadWhatsAppUrl } from '../lib/leadFallback';
+import { dispatchLead } from '../lib/leadDispatcher';
 
 const DRAFT_KEY = 'chef4you_reservation_draft_v1';
 const SMS_REMINDER_BOOKING_URL = 'https://www.smsreminder.co/book/tiVbGssvDw6CtX6t/franko-salgado?utm_source=inline-button-embed&utm_medium=embed';
@@ -67,21 +68,14 @@ export const ReservationPage: React.FC = () => {
     setError(null);
 
     try {
-      const res = await fetch('https://formspree.io/f/mwlprdwr', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          source: 'reservation_page',
-          landingPage: window.location.href,
-        }),
+      const result = await dispatchLead({
+        ...formData,
+        source: 'reservation_page',
+        landingPage: typeof window !== 'undefined' ? window.location.href : '',
       });
 
-      if (!res.ok) {
-        throw new Error('No pudimos enviar tu solicitud. Por favor inténtalo de nuevo o envíala por WhatsApp.');
+      if (!result.success) {
+        throw new Error(result.error || 'No pudimos enviar tu solicitud. Por favor inténtalo de nuevo o envíala por WhatsApp.');
       }
 
       // Track GA4 event
@@ -90,6 +84,7 @@ export const ReservationPage: React.FC = () => {
           event_category: 'ReservationPage',
           event_label: formData.serviceName,
           value: formData.guests,
+          lead_id: result.leadId,
         });
       }
 
