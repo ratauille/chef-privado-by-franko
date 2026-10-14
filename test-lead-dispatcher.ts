@@ -23,11 +23,12 @@ const baseLead: LeadSubmissionPayload = {
 // Pruebas Base (1 a 7)
 // -------------------------------------------------------------
 
-test('1. generateLeadId genera un identificador con prefijo lead_ timestamp y caracteres unicos', () => {
+test('1. generateLeadId genera un identificador con prefijo lead_ timestamp y UUID seguro', () => {
   const id1 = generateLeadId();
   const id2 = generateLeadId();
-  assert.match(id1, /^lead_\d+_[a-z0-9]+$/);
-  assert.match(id2, /^lead_\d+_[a-z0-9]+$/);
+  // Formato: lead_<timestamp>_<uuid-con-guiones> o fallback alfanumérico
+  assert.match(id1, /^lead_\d+_[a-z0-9\-]+$/i);
+  assert.match(id2, /^lead_\d+_[a-z0-9\-]+$/i);
   assert.notEqual(id1, id2, 'Dos IDs generados sucesivamente deben ser unicos');
 });
 

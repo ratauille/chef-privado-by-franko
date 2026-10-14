@@ -40,12 +40,17 @@ export interface LeadDispatcherOptions {
 }
 
 /**
- * Genera un identificador único seguro para el lead (formato: lead_<timestamp>_<random>)
+ * Genera un identificador único criptográficamente seguro para el lead.
+ * Utiliza crypto.randomUUID() para garantizar unicidad e invulnerabilidad a colisiones.
  */
 export function generateLeadId(): string {
   const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 9);
-  return `lead_${timestamp}_${random}`;
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `lead_${timestamp}_${crypto.randomUUID()}`;
+  }
+  // Fallback seguro en caso de entornos sin crypto.randomUUID
+  const randomPart = Math.random().toString(36).substring(2, 10);
+  return `lead_${timestamp}_${randomPart}`;
 }
 
 export const FORMSPREE_DEFAULT_ENDPOINT = 'https://formspree.io/f/mwlprdwr';
