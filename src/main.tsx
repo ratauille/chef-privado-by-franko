@@ -1,6 +1,6 @@
 import { ClerkProvider } from '@clerk/react';
 import React, { Component, ReactNode } from 'react';
-import ReactDOM from 'react-dom/client';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { initAppCheck } from './lib/firebase';
@@ -60,7 +60,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 }
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+const rootElement = document.getElementById('root') as HTMLElement;
+const app = (
   <React.StrictMode>
     <ErrorBoundary>
       {PUBLISHABLE_KEY ? (
@@ -73,3 +74,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     </ErrorBoundary>
   </React.StrictMode>
 );
+
+if (rootElement.hasChildNodes()) {
+  hydrateRoot(rootElement, app);
+} else {
+  createRoot(rootElement).render(app);
+}

@@ -42,7 +42,7 @@ export const ServicesBanner: React.FC<ServicesBannerProps> = ({ onOpenQuote }) =
         >
           <img
             src="/assets/chef4you_services_banner.jpg"
-            alt="Chef4You Services Banner - An experience for every occasion"
+            alt="Chef4You private dining services for romantic dinners, weddings, yacht events and celebrations"
             width={1200}
             height={600}
             loading="lazy"

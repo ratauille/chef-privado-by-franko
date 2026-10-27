@@ -17,10 +17,16 @@ const recaptchaProjectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT
 
 /**
  * Helper: Verificación estricta de reCAPTCHA Enterprise
+ * No confía en x-recaptcha-action libre: exige coincidencia exacta con expectedAction y rechaza acciones ausentes.
  */
 async function verifyRecaptchaToken(token: string, expectedAction: string): Promise<boolean> {
-  if (!token) {
+  if (!token || !token.trim()) {
     functions.logger.warn('[reCAPTCHA] Token no proporcionado en la petición.');
+    return false;
+  }
+
+  if (!expectedAction || !expectedAction.trim()) {
+    functions.logger.warn('[reCAPTCHA] Acción esperada no especificada.');
     return false;
   }
 
@@ -44,12 +50,13 @@ async function verifyRecaptchaToken(token: string, expectedAction: string): Prom
     functions.logger.info(`[reCAPTCHA] Token evaluado - valid: ${tokenProperties?.valid}, action: ${tokenProperties?.action}, score: ${score}`);
 
     if (tokenProperties?.valid !== true) {
-      functions.logger.warn(`[reCAPTCHA] Token inválido. Motivo: ${tokenProperties?.invalidReason}`);
+      functions.logger.warn(`[reCAPTCHA] Token inválido o expirado. Motivo: ${tokenProperties?.invalidReason}`);
       return false;
     }
 
-    if (tokenProperties.action && tokenProperties.action.toUpperCase() !== expectedAction.toUpperCase()) {
-      functions.logger.warn(`[reCAPTCHA] Acción no coincide. Esperada: ${expectedAction}, recibida: ${tokenProperties.action}`);
+    // Exigir estricta presencia e igualdad exacta de la acción
+    if (!tokenProperties.action || tokenProperties.action !== expectedAction) {
+      functions.logger.warn(`[reCAPTCHA] Acción no coincide o está ausente. Esperada: "${expectedAction}", recibida: "${tokenProperties?.action}"`);
       return false;
     }
 
@@ -61,7 +68,9 @@ async function verifyRecaptchaToken(token: string, expectedAction: string): Prom
 }
 
 /**
- * Helper: Rate limiting basado en Firestore con hash de IP sin guardar datos personales libres
+ * Helper: Rate limiting atómico basado en transacciones Firestore con TTL y política de fallo cerrado (Fail-Closed).
+ * Decisión explícita: Se adopta FAIL-CLOSED por seguridad en producción (ante un error de base de datos,
+ * se deniega el tráfico potencialmente abusivo para proteger la infraestructura y cuotas).
  */
 async function isRateLimited(req: functions.https.Request, actionName: string, maxRequests: number = 10, windowMinutes: number = 15): Promise<boolean> {
   try {
@@ -72,77 +81,69 @@ async function isRateLimited(req: functions.https.Request, actionName: string, m
     const windowKey = Math.floor(Date.now() / (windowMinutes * 60 * 1000));
     const ipHash = crypto.createHash('sha256').update(`${sourceIp}-${windowKey}-${actionName}`).digest('hex').slice(0, 16);
 
-    const docRef = db.collection('rate_limits').doc(`${actionName}_${ipHash}`);
-    const docSnap = await docRef.get();
+    const rateLimitRef = db.collection('rate_limits').doc(`${actionName}_${ipHash}`);
+    const nowMs = Date.now();
+    const expiresAt = new Date(nowMs + windowMinutes * 60 * 1000);
 
-    if (!docSnap.exists) {
-      await docRef.set({
-        count: 1,
-        createdAt: FieldValue.serverTimestamp(),
-        expiresAt: new Date(Date.now() + windowMinutes * 60 * 1000),
+    const isLimited = await db.runTransaction(async (transaction) => {
+      const docSnap = await transaction.get(rateLimitRef);
+
+      if (!docSnap.exists) {
+        transaction.set(rateLimitRef, {
+          count: 1,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          expiresAt: expiresAt,
+          ttl: Math.floor(expiresAt.getTime() / 1000),
+        });
+        return false;
+      }
+
+      const data = docSnap.data();
+      const docExpiresAt = data?.expiresAt?.toDate ? data.expiresAt.toDate().getTime() : 0;
+
+      // Si la ventana de tiempo ya expiró, reiniciar conteo
+      if (docExpiresAt && docExpiresAt <= nowMs) {
+        transaction.set(rateLimitRef, {
+          count: 1,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          expiresAt: expiresAt,
+          ttl: Math.floor(expiresAt.getTime() / 1000),
+        });
+        return false;
+      }
+
+      const currentCount = data?.count || 0;
+      if (currentCount >= maxRequests) {
+        return true;
+      }
+
+      transaction.update(rateLimitRef, {
+        count: admin.firestore.FieldValue.increment(1),
       });
+
       return false;
-    }
-
-    const currentCount = docSnap.data()?.count || 0;
-    if (currentCount >= maxRequests) {
-      functions.logger.warn(`[RateLimit] Peticiones excedidas para acción ${actionName}`);
-      return true;
-    }
-
-    await docRef.update({
-      count: FieldValue.increment(1),
     });
 
-    return false;
+    if (isLimited) {
+      functions.logger.warn(`[RateLimit] Peticiones excedidas para acción ${actionName}`);
+    }
+    return isLimited;
   } catch (err) {
-    functions.logger.error('[RateLimit] Error verificando rate limit en Firestore:', err);
-    throw new Error('Rate limiter unavailable; request denied.');
+    functions.logger.error('[RateLimit] Error en transacción de rate limit (Fail-Closed activado):', err);
+    return true; // FAIL-CLOSED: bloquear por seguridad ante falla de la BD
   }
 }
 
-async function requireAppCheck(req: functions.https.Request): Promise<string> {
+async function requireAppCheck(req: functions.https.Request): Promise<string | null> {
   const token = String(req.headers['x-firebase-appcheck'] || '').trim();
-  if (!token) throw new Error('App Check token missing.');
+  if (!token) return null;
   try {
     const claims = await getAppCheck().verifyToken(token);
     return claims.appId;
   } catch (err) {
     functions.logger.warn('[AppCheck] Token inválido o ausente.', err);
-    throw new Error('App Check verification failed.');
+    return null;
   }
-}
-
-/**
- * Helper: Previene reservas duplicadas dentro de una ventana de 10 minutos
- */
-async function saveLeadOnce(cleanData: any): Promise<{ id: string; duplicate: boolean }> {
-  const leadKey = crypto.createHash('sha256')
-    .update(`${cleanData.clientName}-${cleanData.email}-${cleanData.date}`)
-    .digest('hex').slice(0, 20);
-  const markerRef = db.collection('lead_idempotency').doc(leadKey);
-  const reservationRef = db.collection('reservations').doc();
-
-  // The marker and reservation commit together. A failed write cannot falsely
-  // acknowledge a lead, and concurrent submissions share the same reservation.
-  return db.runTransaction(async (transaction) => {
-    const marker = await transaction.get(markerRef);
-    const previous = marker.data();
-    const createdAt = previous?.createdAt?.toDate?.();
-    if (createdAt && previous?.reservationId && Date.now() - createdAt.getTime() < 10 * 60 * 1000) {
-      return { id: previous.reservationId as string, duplicate: true };
-    }
-    transaction.set(reservationRef, {
-      ...cleanData,
-      createdAt: FieldValue.serverTimestamp(),
-      status: 'pending',
-    });
-    transaction.set(markerRef, {
-      createdAt: FieldValue.serverTimestamp(),
-      reservationId: reservationRef.id,
-    });
-    return { id: reservationRef.id, duplicate: false };
-  });
 }
 
 /**
@@ -164,6 +165,7 @@ function escapeHtml(str: any): string {
 function setCorsHeaders(req: functions.https.Request, res: functions.Response) {
   const allowedOrigins = [
     'https://chef4youbyfranko.com',
+    'https://www.chef4youbyfranko.com',
     'https://chef-privado.web.app',
     'https://chef-privado.firebaseapp.com',
     'http://localhost:5173',
@@ -405,7 +407,7 @@ export const onReservationCreated = functions.runWith({ secrets: ['GEMINI_API_KE
   });
 
 /**
- * 2. ENDPOINT HTTPS /api/lead - Formulario de Reserva Web (Protegido & Idempotente)
+ * 2. ENDPOINT HTTPS /api/lead - Formulario de Reserva Web (Protegido & Atómico)
  */
 export const apiLead = functions.https.onRequest(async (req, res) => {
   setCorsHeaders(req, res);
@@ -421,16 +423,23 @@ export const apiLead = functions.https.onRequest(async (req, res) => {
   }
 
   try {
-    // Rate Limiting (Máx 5 peticiones por 15 min por IP hash)
+    // Rate Limiting (Máx 5 peticiones por 15 min por IP hash con Fail-Closed)
     if (await isRateLimited(req, 'apiLead', 5, 15)) {
       res.status(429).json({ error: 'Demasiadas solicitudes. Por favor intente más tarde.' });
       return;
     }
 
-    const recaptchaToken = String(req.headers['x-recaptcha-token'] || req.body?.recaptchaToken || '');
-    const recaptchaAction = String(req.headers['x-recaptcha-action'] || 'RESERVATION');
+    const recaptchaToken = String(req.headers['x-recaptcha-token'] || req.body?.recaptchaToken || '').trim();
+    if (!recaptchaToken) {
+      res.status(403).json({ error: 'Protección antispam requerida. Token reCAPTCHA no proporcionado.' });
+      return;
+    }
 
-    if (!(await verifyRecaptchaToken(recaptchaToken, recaptchaAction))) {
+    // No confiar en x-recaptcha-action libre: validar contra acciones permitidas en backend
+    const rawAction = String(req.headers['x-recaptcha-action'] || req.body?.recaptchaAction || 'RESERVATION').trim().toUpperCase();
+    const expectedAction = rawAction === 'LEAD' ? 'LEAD' : 'RESERVATION';
+
+    if (!(await verifyRecaptchaToken(recaptchaToken, expectedAction))) {
       res.status(403).json({ error: 'No se pudo validar la protección antispam. Recarga la página e inténtalo de nuevo.' });
       return;
     }
@@ -441,23 +450,54 @@ export const apiLead = functions.https.onRequest(async (req, res) => {
       return;
     }
 
-    // Reserva y clave de idempotencia se guardan atómicamente.
-    const saved = await saveLeadOnce(validation.cleanData);
-    if (saved.duplicate) {
+    // Transacción atómica: idempotencia + creación de reserva juntas en un solo commit de Firestore
+    const leadKey = crypto.createHash('sha256')
+      .update(`${validation.cleanData.clientName}-${validation.cleanData.email}-${validation.cleanData.date}`)
+      .digest('hex').slice(0, 20);
+
+    const idempotencyRef = db.collection('lead_idempotency').doc(leadKey);
+    const newReservationRef = db.collection('reservations').doc();
+
+    const txResult = await db.runTransaction(async (transaction) => {
+      const idempotencySnap = await transaction.get(idempotencyRef);
+      if (idempotencySnap.exists) {
+        const createdAt = idempotencySnap.data()?.createdAt?.toDate();
+        if (createdAt && (Date.now() - createdAt.getTime()) < 10 * 60 * 1000) {
+          return { duplicate: true, reservationId: idempotencySnap.data()?.reservationId };
+        }
+      }
+
+      transaction.set(idempotencyRef, {
+        reservationId: newReservationRef.id,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        clientHash: crypto.createHash('sha256').update(validation.cleanData.email).digest('hex').slice(0, 10),
+        ttl: Math.floor((Date.now() + 10 * 60 * 1000) / 1000),
+      });
+
+      transaction.set(newReservationRef, {
+        ...validation.cleanData,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'pending',
+      });
+
+      return { duplicate: false, reservationId: newReservationRef.id };
+    });
+
+    if (txResult.duplicate) {
       res.status(200).json({
         success: true,
-        id: saved.id,
+        id: txResult.reservationId,
         message: 'Solicitud recibida previamente. Franko se pondrá en contacto pronto.',
       });
       return;
     }
 
     // Logging seguro sin datos personales en texto claro
-    functions.logger.info(`[apiLead] Reserva creada exitosamente. ID: ${saved.id}, Fecha: ${validation.cleanData.date}, Comensales: ${validation.cleanData.guests}`);
+    functions.logger.info(`[apiLead] Reserva creada exitosamente en transacción atómica. ID: ${txResult.reservationId}, Fecha: ${validation.cleanData.date}, Comensales: ${validation.cleanData.guests}`);
 
     res.status(200).json({
       success: true,
-      id: saved.id,
+      id: txResult.reservationId,
       message: 'Solicitud de reserva recibida exitosamente.',
     });
   } catch (error: any) {
@@ -467,7 +507,7 @@ export const apiLead = functions.https.onRequest(async (req, res) => {
 });
 
 /**
- * 3. ENDPOINT HTTPS /api/assistant/chat - Franko AI Assistant Widget (Protegido & Rate Limited)
+ * 3. ENDPOINT HTTPS /api/assistant/chat - Franko AI Assistant Widget (reCAPTCHA Obligatorio & Rate Limited)
  */
 export const apiAssistantChat = functions.runWith({ secrets: ['GEMINI_API_KEY'], maxInstances: 3, timeoutSeconds: 30 }).https.onRequest(async (req, res) => {
   setCorsHeaders(req, res);
@@ -491,14 +531,17 @@ export const apiAssistantChat = functions.runWith({ secrets: ['GEMINI_API_KEY'],
       return;
     }
 
-    // Validación opcional/estricta de reCAPTCHA para el chat si viene token
-    const recaptchaToken = String(req.headers['x-recaptcha-token'] || req.body?.recaptchaToken || '');
-    if (recaptchaToken) {
-      const isHuman = await verifyRecaptchaToken(recaptchaToken, 'CHAT');
-      if (!isHuman) {
-        res.status(403).json({ error: 'Verificación antispam fallida en asistente virtual.' });
-        return;
-      }
+    // reCAPTCHA Obligatorio: Responder 403 de inmediato si no existe token, SIN invocar Gemini
+    const recaptchaToken = String(req.headers['x-recaptcha-token'] || req.body?.recaptchaToken || '').trim();
+    if (!recaptchaToken) {
+      res.status(403).json({ error: 'Protección antispam requerida. Token reCAPTCHA no proporcionado.' });
+      return;
+    }
+
+    const isHuman = await verifyRecaptchaToken(recaptchaToken, 'CHAT');
+    if (!isHuman) {
+      res.status(403).json({ error: 'Verificación antispam fallida en asistente virtual.' });
+      return;
     }
 
     const message = String(req.body?.message || req.body?.prompt || '').trim();
@@ -548,8 +591,7 @@ Responde directamente en ${responseLanguage} en máximo 3 párrafos cortos. No i
 });
 
 /**
- * 4. ENDPOINT HTTPS DIRECTO handleNewBooking (DEPRECATED & Protegido)
- * Nota: Endpoint no utilizado en el frontend ni en firebase.json rewrites. Mantenido por compatibilidad legacy.
+ * 4. ENDPOINT HTTPS DIRECTO handleNewBooking (DEPRECATED & Protegido Atómicamente)
  */
 export const handleNewBooking = functions.https.onRequest(async (req, res) => {
   setCorsHeaders(req, res);
@@ -565,15 +607,15 @@ export const handleNewBooking = functions.https.onRequest(async (req, res) => {
   }
 
   try {
-    functions.logger.warn('[DEPRECATED] Solicitud recibida en handleNewBooking. Este endpoint está obsoleto y será retirado.');
+    functions.logger.warn('[DEPRECATED] Solicitud recibida en handleNewBooking. Este endpoint está obsoleto.');
 
     if (await isRateLimited(req, 'handleNewBooking', 5, 15)) {
       res.status(429).json({ error: 'Demasiadas solicitudes.' });
       return;
     }
 
-    const recaptchaToken = String(req.headers['x-recaptcha-token'] || req.body?.recaptchaToken || '');
-    if (!(await verifyRecaptchaToken(recaptchaToken, 'RESERVATION'))) {
+    const recaptchaToken = String(req.headers['x-recaptcha-token'] || req.body?.recaptchaToken || '').trim();
+    if (!recaptchaToken || !(await verifyRecaptchaToken(recaptchaToken, 'RESERVATION'))) {
       res.status(403).json({ error: 'Verificación antispam fallida.' });
       return;
     }
@@ -584,15 +626,36 @@ export const handleNewBooking = functions.https.onRequest(async (req, res) => {
       return;
     }
 
-    const docRef = await db.collection('reservations').add({
-      ...validation.cleanData,
-      createdAt: FieldValue.serverTimestamp(),
-      status: 'pending',
+    const leadKey = crypto.createHash('sha256')
+      .update(`${validation.cleanData.clientName}-${validation.cleanData.email}-${validation.cleanData.date}`)
+      .digest('hex').slice(0, 20);
+
+    const idempotencyRef = db.collection('lead_idempotency').doc(leadKey);
+    const newReservationRef = db.collection('reservations').doc();
+
+    const txResult = await db.runTransaction(async (transaction) => {
+      const idempotencySnap = await transaction.get(idempotencyRef);
+      if (idempotencySnap.exists) {
+        return { duplicate: true, reservationId: idempotencySnap.data()?.reservationId };
+      }
+
+      transaction.set(idempotencyRef, {
+        reservationId: newReservationRef.id,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      transaction.set(newReservationRef, {
+        ...validation.cleanData,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'pending',
+      });
+
+      return { duplicate: false, reservationId: newReservationRef.id };
     });
 
     res.status(200).json({
       success: true,
-      reservationId: docRef.id,
+      reservationId: txResult.reservationId,
       message: 'Reserva procesada exitosamente.',
     });
   } catch (error: any) {

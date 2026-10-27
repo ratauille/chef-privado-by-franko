@@ -1,0 +1,22 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Chef 4 You by Franko",
+    "documentationUrl": "https://chef4youbyfranko.com/llms.txt",
+    "logoUrl": "https://chef4youbyfranko.com/assets/logo.svg"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:chef4youbyfranko.com:hospitality:private-chef-guide",
+      "displayName": "Chef 4 You by Franko — Service & Booking Guide",
+      "type": "text/markdown; profile=\"urn:air:agent-skills\"",
+      "url": "https://chef4youbyfranko.com/llms.txt",
+      "description": "Machine-readable overview of private chef experiences, tasting menus, service areas in Puerto Vallarta, Punta Mita, and Nuevo Nayarit, and verified reservation links.",
+      "representativeQueries": [
+        "private chef experiences in Puerto Vallarta and Punta Mita",
+        "book Chef Franko Salgado for a private villa dinner",
+        "tasting menu and private dining options at Chef 4 You"
+      ]
+    }
+  ]
+}

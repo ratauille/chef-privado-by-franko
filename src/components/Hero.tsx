@@ -27,7 +27,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuote }) => (
       </motion.div>
       <motion.div className="lg:col-span-5" initial={{opacity:0,scale:.96}} animate={{opacity:1,scale:1}} transition={{duration:.9,delay:.15}}>
         <div className="relative rounded-3xl overflow-hidden border border-stone-800 bg-[#141312] shadow-2xl">
-          <img src="/assets/chef_franko_team.webp" alt="Chef Franko creating a private dining experience" width={800} height={1000} loading="eager" className="w-full h-[520px] object-cover brightness-90" />
+          <img src="/assets/chef_franko_team.webp" alt="Chef Franko and his culinary team working in a professional kitchen" width={800} height={1000} loading="eager" className="w-full h-[520px] object-cover brightness-90" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
           <div className="absolute bottom-6 left-6 right-6"><p className="font-serif text-xl text-white">Private hospitality, thoughtfully hosted.</p></div>
         </div>

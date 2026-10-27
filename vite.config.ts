@@ -59,13 +59,26 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      '/api/lead': {
+        target: 'http://127.0.0.1:5001/chef-privado/us-central1/apiLead',
+        changeOrigin: true,
+        rewrite: () => '',
+      },
+      '/api/assistant/chat': {
+        target: 'http://127.0.0.1:5001/chef-privado/us-central1/apiAssistantChat',
+        changeOrigin: true,
+        rewrite: () => '',
+      },
+    },
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks: {
-          clerk: ['@clerk/react'],
           firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
           motion: ['motion/react'],
         },

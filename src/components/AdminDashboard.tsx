@@ -113,8 +113,9 @@ export const AdminDashboard: React.FC = () => {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase text-stone-600 mb-1">Correo Electrónico</label>
+              <label htmlFor="admin-email" className="block text-xs font-bold uppercase text-stone-600 mb-1">Correo Electrónico</label>
               <input
+                id="admin-email"
                 type="email"
                 required
                 value={email}
@@ -124,8 +125,9 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase text-stone-600 mb-1">Contraseña</label>
+              <label htmlFor="admin-password" className="block text-xs font-bold uppercase text-stone-600 mb-1">Contraseña</label>
               <input
+                id="admin-password"
                 type="password"
                 required
                 placeholder="••••••••"
@@ -196,9 +198,14 @@ export const AdminDashboard: React.FC = () => {
         <div className="bg-white border border-stone-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="p-4 sm:p-6 border-b border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="relative w-full sm:w-72">
+              <label htmlFor="admin-search" className="sr-only">
+                Buscar cliente, email o teléfono
+              </label>
               <Search className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
               <input
+                id="admin-search"
                 type="text"
+                aria-label="Buscar cliente, email o teléfono"
                 placeholder="Buscar cliente, email o teléfono..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
@@ -210,6 +217,7 @@ export const AdminDashboard: React.FC = () => {
               {['all', 'pending', 'confirmed', 'completed'].map(f => (
                 <button
                   key={f}
+                  type="button"
                   onClick={() => setFilter(f)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${
                     filter === f ? 'bg-black text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
@@ -276,6 +284,7 @@ export const AdminDashboard: React.FC = () => {
                     <td className="px-6 py-4 text-right space-x-1">
                       {(r.status || 'pending') === 'pending' && (
                         <button
+                          type="button"
                           onClick={() => updateStatus(r.id, 'confirmed')}
                           className="px-2 py-1 rounded bg-emerald-600 text-white font-bold text-[10px]"
                         >
@@ -284,6 +293,7 @@ export const AdminDashboard: React.FC = () => {
                       )}
                       {r.status === 'confirmed' && (
                         <button
+                          type="button"
                           onClick={() => updateStatus(r.id, 'completed')}
                           className="px-2 py-1 rounded bg-blue-600 text-white font-bold text-[10px]"
                         >
@@ -291,7 +301,9 @@ export const AdminDashboard: React.FC = () => {
                         </button>
                       )}
                       <button
+                        type="button"
                         onClick={() => handleDelete(r.id)}
+                        aria-label={`Eliminar reserva de ${r.clientName || 'cliente'}`}
                         className="p-1 rounded text-stone-400 hover:text-red-600"
                       >
                         <Trash2 className="w-4 h-4" />
