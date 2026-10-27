@@ -1,12 +1,13 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { Sparkles } from 'lucide-react';
 import { Navbar } from './components/Navbar';
-import { Experiences } from './components/Experiences';
-import { ChefBio } from './components/ChefBio';
-import { Footer } from './components/Footer';
 import { HomePage } from './components/HomePage';
-import { LanguageProvider } from './lib/i18n';
+import { LanguageProvider, useLanguage } from './lib/i18n';
 
-// Lazy-loaded components for optimal bundle splitting
+// Lazy-loaded components for optimal bundle splitting and fast mobile LCP
+const Experiences = lazy(() => import('./components/Experiences').then(m => ({ default: m.Experiences })));
+const ChefBio = lazy(() => import('./components/ChefBio').then(m => ({ default: m.ChefBio })));
+const Footer = lazy(() => import('./components/Footer').then(m => ({ default: m.Footer })));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const ArtGallery = lazy(() => import('./components/ArtGallery').then(m => ({ default: m.ArtGallery })));
 const ReservationPage = lazy(() => import('./components/ReservationPage').then(m => ({ default: m.ReservationPage })));
@@ -20,22 +21,67 @@ const LoadingSpinner = () => (
   </div>
 );
 
-function AppContent() {
+const normalizePathname = (path: string) => {
+  const normalized = path.replace(/\/+$/, '');
+  return normalized || '/';
+};
+
+const FloatingFrankoAIButton: React.FC<{ onClick: () => void; hidden?: boolean }> = ({ onClick, hidden }) => {
+  const { lang } = useLanguage();
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={lang === 'en' ? 'Open Franko AI Assistant' : 'Abrir asistente Franko AI'}
+      tabIndex={hidden ? -1 : 0}
+      aria-hidden={hidden ? 'true' : undefined}
+      className={`fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#c5a059] via-[#d8b96d] to-[#9e7c33] px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-stone-950 shadow-[0_12px_32px_rgba(0,0,0,0.45)] transition-transform hover:scale-105 active:scale-95 ${
+        hidden ? 'invisible pointer-events-none opacity-0' : 'opacity-100'
+      }`}
+    >
+      <Sparkles className="w-4 h-4 shrink-0" />
+      <span>Franko AI</span>
+    </button>
+  );
+};
+
+interface AppProps {
+  initialPath?: string;
+}
+
+function AppContent({ initialPath }: AppProps) {
+  const { lang } = useLanguage();
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [aiChatOpen, setAiChatOpen] = useState(false);
-  const [pathname, setPathname] = useState(window.location.pathname);
+  const [pathname, setPathname] = useState(
+    normalizePathname(initialPath ?? (typeof window !== 'undefined' ? window.location.pathname : '/'))
+  );
 
   useEffect(() => {
-    const handlePopState = () => setPathname(window.location.pathname);
+    const handlePopState = () => setPathname(normalizePathname(window.location.pathname));
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const navigateTo = (path: string) => {
     window.history.pushState({}, '', path);
-    setPathname(path);
+    setPathname(normalizePathname(path));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const handleOpenQuoteFromAI = () => {
+    setAiChatOpen(false);
+    setQuoteOpen(true);
+  };
+
+  const skipLink = (
+    <a
+      href="#main-content"
+      className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-[#c5a059] focus:text-stone-950 focus:font-bold focus:rounded-xl focus:shadow-2xl focus:outline-none focus:ring-2 focus:ring-white"
+    >
+      {lang === 'en' ? 'Skip to main content' : 'Saltar al contenido principal'}
+    </a>
+  );
 
   // Route 1: /admin
   if (pathname === '/admin' || pathname.startsWith('/admin')) {
@@ -46,27 +92,43 @@ function AppContent() {
     );
   }
 
+  // Shared modals and floating Franko AI launcher for all public routes
+  const globalOverlays = (
+    <>
+      <FloatingFrankoAIButton hidden={aiChatOpen} onClick={() => setAiChatOpen(true)} />
+      <Suspense fallback={null}>
+        {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
+        {aiChatOpen && (
+          <FrankoAIChatModal
+            isOpen={aiChatOpen}
+            onClose={() => setAiChatOpen(false)}
+            onOpenQuote={handleOpenQuoteFromAI}
+          />
+        )}
+      </Suspense>
+    </>
+  );
+
   // Route 2: /galeria
   if (pathname === '/galeria') {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
+        {skipLink}
         <Navbar
           currentPath={pathname}
           onNavigate={navigateTo}
           onOpenQuote={() => setQuoteOpen(true)}
           onOpenAI={() => setAiChatOpen(true)}
         />
-        <main className="pt-4">
+        <main id="main-content" tabIndex={-1} className="pt-4 outline-none">
           <Suspense fallback={<LoadingSpinner />}>
             <ArtGallery isFullView onOpenQuote={() => setQuoteOpen(true)} />
           </Suspense>
         </main>
-        <Footer onNavigate={navigateTo} />
-
         <Suspense fallback={null}>
-          {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
-          {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
+          <Footer onNavigate={navigateTo} />
         </Suspense>
+        {globalOverlays}
       </div>
     );
   }
@@ -75,21 +137,22 @@ function AppContent() {
   if (pathname === '/experiencias') {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
+        {skipLink}
         <Navbar
           currentPath={pathname}
           onNavigate={navigateTo}
           onOpenQuote={() => setQuoteOpen(true)}
           onOpenAI={() => setAiChatOpen(true)}
         />
-        <main className="pt-4">
-          <Experiences isFullView onOpenQuote={() => setQuoteOpen(true)} />
+        <main id="main-content" tabIndex={-1} className="pt-4 outline-none">
+          <Suspense fallback={<LoadingSpinner />}>
+            <Experiences isFullView onOpenQuote={() => setQuoteOpen(true)} />
+          </Suspense>
         </main>
-        <Footer onNavigate={navigateTo} />
-
         <Suspense fallback={null}>
-          {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
-          {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
+          <Footer onNavigate={navigateTo} />
         </Suspense>
+        {globalOverlays}
       </div>
     );
   }
@@ -98,21 +161,22 @@ function AppContent() {
   if (pathname === '/chef-franko') {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
+        {skipLink}
         <Navbar
           currentPath={pathname}
           onNavigate={navigateTo}
           onOpenQuote={() => setQuoteOpen(true)}
           onOpenAI={() => setAiChatOpen(true)}
         />
-        <main className="pt-4">
-          <ChefBio isFullView onOpenQuote={() => setQuoteOpen(true)} />
+        <main id="main-content" tabIndex={-1} className="pt-4 outline-none">
+          <Suspense fallback={<LoadingSpinner />}>
+            <ChefBio isFullView onOpenQuote={() => setQuoteOpen(true)} />
+          </Suspense>
         </main>
-        <Footer onNavigate={navigateTo} />
-
         <Suspense fallback={null}>
-          {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
-          {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
+          <Footer onNavigate={navigateTo} />
         </Suspense>
+        {globalOverlays}
       </div>
     );
   }
@@ -121,23 +185,22 @@ function AppContent() {
   if (pathname === '/reservar') {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
+        {skipLink}
         <Navbar
           currentPath={pathname}
           onNavigate={navigateTo}
           onOpenQuote={() => setQuoteOpen(true)}
           onOpenAI={() => setAiChatOpen(true)}
         />
-        <main>
+        <main id="main-content" tabIndex={-1} className="outline-none">
           <Suspense fallback={<LoadingSpinner />}>
             <ReservationPage />
           </Suspense>
         </main>
-        <Footer onNavigate={navigateTo} />
-
         <Suspense fallback={null}>
-          {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
-          {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
+          <Footer onNavigate={navigateTo} />
         </Suspense>
+        {globalOverlays}
       </div>
     );
   }
@@ -145,22 +208,22 @@ function AppContent() {
   // Route 6: / (Homepage SPA)
   return (
     <>
-      <HomePage onOpenQuote={() => setQuoteOpen(true)} onNavigate={navigateTo} />
-      <Suspense fallback={null}>
-        {quoteOpen && <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />}
-        {aiChatOpen && <FrankoAIChatModal isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />}
-      </Suspense>
+      <HomePage
+        onOpenQuote={() => setQuoteOpen(true)}
+        onOpenAI={() => setAiChatOpen(true)}
+        onNavigate={navigateTo}
+      />
+      {globalOverlays}
     </>
   );
 }
 
-export function App() {
+export function App({ initialPath }: AppProps) {
   return (
     <LanguageProvider>
-      <AppContent />
+      <AppContent initialPath={initialPath} />
     </LanguageProvider>
   );
 }
 
 export default App;
-

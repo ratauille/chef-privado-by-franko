@@ -10,11 +10,20 @@ interface ExperiencesProps {
 
 const experienceImages = [
   '/assets/banquete_gala_frente_al_mar.jpg',
-  '/assets/cena_degustacion_5_tiempos.png',
-  '/assets/IMG_1937.jpg',
-  '/assets/belli_pure_cebolla_tatemada.png',
-  '/assets/creme_brulee_cangrejo_real.png',
-  '/assets/IMG_1389.jpg',
+  '/assets/cena_degustacion_5_tiempos.webp',
+  '/assets/IMG_1937.webp',
+  '/assets/belli_pure_cebolla_tatemada.webp',
+  '/assets/creme_brulee_cangrejo_real.webp',
+  '/assets/IMG_1389.webp',
+];
+
+const experienceImageAlts = [
+  'Luxury private banquet dish with edible flowers at a private dinner',
+  'Five-course private tasting dinner in Puerto Vallarta',
+  'Private dining experience prepared by Chef Franko with plated lamb and fish',
+  'Beef tenderloin with avocado mousse, black garlic and roasted carrot',
+  'Crab crème brûlée with smoked fennel and star anise garnish',
+  'Roasted meat with colorful vegetable purees and edible flowers',
 ];
 
 export const Experiences: React.FC<ExperiencesProps> = ({ onOpenQuote, isFullView }) => {
@@ -28,9 +37,9 @@ export const Experiences: React.FC<ExperiencesProps> = ({ onOpenQuote, isFullVie
             <Sparkles className="w-3.5 h-3.5 text-[#c5a059]" />
             <span>{t.experiences.badge}</span>
           </div>
-          <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-light text-white">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-light text-white">
             {t.experiences.title1} <span className="italic text-[#d8b96d]">{t.experiences.title2}</span>
-          </h2>
+          </h1>
           <p className="mt-4 text-stone-400 text-base sm:text-lg leading-relaxed font-light">
             {t.experiences.subtitle}
           </p>
@@ -49,7 +58,7 @@ export const Experiences: React.FC<ExperiencesProps> = ({ onOpenQuote, isFullVie
               <div className="h-64 overflow-hidden relative">
                 <img
                   src={experienceImages[i] || experienceImages[0]}
-                  alt={exp.title}
+                  alt={experienceImageAlts[i] || experienceImageAlts[0]}
                   loading="lazy"
                   className="w-full h-full object-cover transition duration-700 group-hover:scale-105"
                 />
@@ -57,15 +66,17 @@ export const Experiences: React.FC<ExperiencesProps> = ({ onOpenQuote, isFullVie
               </div>
 
               <div className="p-7 flex flex-col flex-1">
-                <h3 className="font-serif text-2xl font-light text-white group-hover:text-[#d8b96d] transition-colors">
+                <h2 className="font-serif text-2xl font-light text-white group-hover:text-[#d8b96d] transition-colors">
                   {exp.title}
-                </h3>
+                </h2>
                 <p className="mt-3 text-stone-400 text-sm leading-relaxed flex-1 font-light">
                   {exp.desc}
                 </p>
                 <button
+                  type="button"
                   onClick={onOpenQuote}
-                  className="mt-6 w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-[#c5a059] via-[#d8b96d] to-[#9e7c33] text-stone-950 font-bold text-xs uppercase tracking-wider shadow-md hover:brightness-110 active:scale-95 transition-all"
+                  aria-label={`${exp.cta}: ${exp.title}`}
+                  className="mt-6 w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-[#c5a059] via-[#d8b96d] to-[#9e7c33] text-stone-950 font-bold text-xs uppercase tracking-wider shadow-md hover:brightness-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[#c5a059]"
                 >
                   <span>{exp.cta}</span>
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />

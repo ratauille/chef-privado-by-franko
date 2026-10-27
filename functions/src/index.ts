@@ -147,6 +147,7 @@ function escapeHtml(str: any): string {
 function setCorsHeaders(req: functions.https.Request, res: functions.Response) {
   const allowedOrigins = [
     'https://chef4youbyfranko.com',
+    'https://www.chef4youbyfranko.com',
     'https://chef-privado.web.app',
     'https://chef-privado.firebaseapp.com',
     'http://localhost:5173',

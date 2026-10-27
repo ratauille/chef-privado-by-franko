@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUpRight, Camera, Sparkles, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '../lib/i18n';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface ArtGalleryProps {
   onOpenQuote?: () => void;
@@ -25,8 +26,8 @@ export interface GalleryItem {
 const GALLERY_ITEMS: GalleryItem[] = [
   {
     id: '1',
-    src: '/assets/IMG_1937.jpg',
-    alt: 'Pescado de autor y cordero emplatados para servicio de gala',
+    src: '/assets/IMG_1937.webp',
+    alt: 'Private dining experience prepared by Chef Franko with plated lamb and fish',
     titleEn: 'The Landscape Plate',
     titleEs: 'El Plato como Paisaje',
     subtitleEn: 'Author composition with heritage proteins and delicate emulsions',
@@ -38,8 +39,8 @@ const GALLERY_ITEMS: GalleryItem[] = [
   },
   {
     id: '2',
-    src: '/assets/IMG_1389.jpg',
-    alt: 'Corte de carne de autor con vegetales y flores comestibles',
+    src: '/assets/IMG_1389.webp',
+    alt: 'Glazed roasted meat with vegetable purees and edible flowers on a white plate',
     titleEn: 'Product, Technique & Color',
     titleEs: 'Producto, Técnica & Color',
     subtitleEn: 'Glazed tenderloin and seasonal microgreens',
@@ -51,7 +52,7 @@ const GALLERY_ITEMS: GalleryItem[] = [
   {
     id: '3',
     src: '/assets/IMG_0305.JPG',
-    alt: 'Chef Franko en cocina trabajando con precisión',
+    alt: 'Chef Franko carefully plating a dish in a professional kitchen',
     titleEn: 'Chef Franko in Action',
     titleEs: 'Chef Franko en Acción',
     subtitleEn: 'Artisanal focus on every plated detail',
@@ -62,8 +63,8 @@ const GALLERY_ITEMS: GalleryItem[] = [
   },
   {
     id: '4',
-    src: '/assets/IMG_1823.jpg',
-    alt: 'Montaje de mesa y servicio de gala en villa privada',
+    src: '/assets/IMG_1823.webp',
+    alt: 'Elegant table setting prepared for a private villa dinner',
     titleEn: 'The Ritual of Table Hospitality',
     titleEs: 'El Ritual del Servicio',
     subtitleEn: 'Full table setting with fine china and crystal stemware',
@@ -74,8 +75,8 @@ const GALLERY_ITEMS: GalleryItem[] = [
   },
   {
     id: '5',
-    src: '/assets/IMG_1767.jpg',
-    alt: 'Plato de temporada con chícharos, flores y espuma marina',
+    src: '/assets/IMG_1767.webp',
+    alt: 'Seasonal plated dish decorated with peas, edible flowers and delicate foam',
     titleEn: 'A Story in Every Course',
     titleEs: 'Una Historia en Cada Tiempo',
     subtitleEn: 'Crisp textures, floral accents and delicate ocean foam',
@@ -87,8 +88,8 @@ const GALLERY_ITEMS: GalleryItem[] = [
   },
   {
     id: '6',
-    src: '/assets/IMG_8021.jpg',
-    alt: 'Postre de autor dentro de esfera de azúcar soplada',
+    src: '/assets/IMG_8021.webp',
+    alt: 'Artistic dessert presented inside a blown sugar sphere',
     titleEn: 'Moments of Wonder',
     titleEs: 'El Momento de Asombro',
     subtitleEn: 'Avant-garde pastry artistry and blown sugar dome',
@@ -100,7 +101,7 @@ const GALLERY_ITEMS: GalleryItem[] = [
   {
     id: '7',
     src: '/assets/IMG_0488.JPG',
-    alt: 'Técnica de corte y preparación de mariscos frescos',
+    alt: 'Chef preparing fresh Pacific seafood with precise cutting technique',
     titleEn: 'Culinary Precision',
     titleEs: 'Precisión Culinaria',
     subtitleEn: 'Daily hand-selection of fresh Pacific seafood catch',
@@ -112,7 +113,7 @@ const GALLERY_ITEMS: GalleryItem[] = [
   {
     id: '8',
     src: '/assets/IMG_0489.JPG',
-    alt: 'Detalle de composición de platillo con brotes orgánicos',
+    alt: 'Close-up of a plated dish finished with organic microgreens',
     titleEn: 'Microgreens & Equilibrium',
     titleEs: 'Microgreens & Equilibrio',
     subtitleEn: 'Harmonious balance between texture, acidity and aesthetics',
@@ -123,8 +124,8 @@ const GALLERY_ITEMS: GalleryItem[] = [
   },
   {
     id: '9',
-    src: '/assets/IMG_0493.JPG',
-    alt: 'Emplatado meticuloso de salsas y esferificaciones',
+    src: '/assets/IMG_0493.webp',
+    alt: 'Chef carefully arranging sauces and modern culinary garnishes on a plate',
     titleEn: 'Geometry of Flavor',
     titleEs: 'Geometría del Sabor',
     subtitleEn: 'Handmade slow reductions and molecular flavor accents',
@@ -135,8 +136,8 @@ const GALLERY_ITEMS: GalleryItem[] = [
   },
   {
     id: '10',
-    src: '/assets/IMG_0495.JPG',
-    alt: 'Sartenado a fuego vivo y técica de dorados',
+    src: '/assets/IMG_0495.webp',
+    alt: 'Chef searing ingredients in a hot pan over open flame',
     titleEn: 'Fire & Searing Technique',
     titleEs: 'Fuego & Temperatura',
     subtitleEn: 'High-temperature pan sear to lock in natural juices',
@@ -146,21 +147,9 @@ const GALLERY_ITEMS: GalleryItem[] = [
     height: 600,
   },
   {
-    id: '11',
-    src: '/assets/chef_franko_brigada.jpg',
-    alt: 'Chef Franko Salgado y su brigada de alta cocina',
-    titleEn: 'Elite Culinary Brigade',
-    titleEs: 'Brigada de Élite',
-    subtitleEn: 'Discretion, elegance and hospitality inside your residence',
-    subtitleEs: 'Profesionalismo y disciplina en tu residencia',
-    category: 'brigada',
-    width: 800,
-    height: 600,
-  },
-  {
     id: '12',
     src: '/assets/private_chef_flatlay.jpg',
-    alt: 'Vista aérea de banquete privado de autor',
+    alt: 'Overhead view of a curated private dining table with plated dishes',
     titleEn: 'Complete Dining Experience',
     titleEs: 'Experiencia Culinaria Completa',
     subtitleEn: 'From curated market ingredients to effortless hosting',
@@ -169,12 +158,73 @@ const GALLERY_ITEMS: GalleryItem[] = [
     width: 800,
     height: 600,
   },
+  {
+    id: '13',
+    src: '/assets/img_0849.webp',
+    alt: 'Seared seafood plated with citrus puree, vanilla and a delicate sauce',
+    titleEn: 'Citrus & Sea',
+    titleEs: 'Cítricos y Mar',
+    subtitleEn: 'A refined seafood composition with bright tropical notes',
+    subtitleEs: 'Composición marina con notas tropicales y brillantes',
+    category: 'platos',
+    width: 683,
+    height: 1024,
+  },
+  {
+    id: '14',
+    src: '/assets/dessert_mint_sphere.jpg',
+    alt: 'Mint ice cream sphere with delicate dessert garnishes and fresh herbs',
+    titleEn: 'Mint Garden',
+    titleEs: 'Jardín de Menta',
+    subtitleEn: 'Fresh herbs, color and delicate pastry textures',
+    subtitleEs: 'Hierbas frescas, color y texturas de pastelería',
+    category: 'platos',
+    width: 1024,
+    height: 683,
+  },
+  {
+    id: '15',
+    src: '/assets/dessert_chocolate_cone.jpg',
+    alt: 'Modern dessert with a chocolate cone, fruit and crisp garnishes',
+    titleEn: 'Cacao & Texture',
+    titleEs: 'Cacao y Textura',
+    subtitleEn: 'Playful pastry architecture with seasonal fruit accents',
+    subtitleEs: 'Arquitectura de pastelería con fruta de temporada',
+    category: 'platos',
+    width: 1024,
+    height: 683,
+  },
+  {
+    id: '16',
+    src: '/assets/postre_patrio.webp',
+    alt: 'Mexican-inspired signature dessert by Chef Franko with cream, berries and herbs',
+    titleEn: 'Seasonal Celebration',
+    titleEs: 'Celebración de Temporada',
+    subtitleEn: 'A playful composition inspired by Mexican ingredients and color',
+    subtitleEs: 'Composición inspirada en ingredientes y colores mexicanos',
+    category: 'platos',
+    width: 683,
+    height: 1024,
+  },
+  {
+    id: '17',
+    src: '/assets/paleta_de_chivo.webp',
+    alt: 'Roasted goat shoulder prepared by Chef Franko with seasonal garnish',
+    titleEn: 'Slow-Roasted Goat',
+    titleEs: 'Paleta de Chivo',
+    subtitleEn: 'Slow cooking, depth of flavor and precise presentation',
+    subtitleEs: 'Cocción lenta, profundidad de sabor y precisión',
+    category: 'platos',
+    width: 683,
+    height: 1024,
+  },
 ];
 
 export const ArtGallery: React.FC<ArtGalleryProps> = ({ onOpenQuote, isFullView = false }) => {
   const [activeCategory, setActiveCategory] = useState<string>('todos');
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const { t, lang } = useLanguage();
+  const lightboxRef = useFocusTrap({ isOpen: selectedIndex !== null, onClose: () => setSelectedIndex(null) });
 
   const filteredItems =
     activeCategory === 'todos'
@@ -230,9 +280,9 @@ export const ArtGallery: React.FC<ArtGalleryProps> = ({ onOpenQuote, isFullView 
             <span>{t.gallery.badge}</span>
           </div>
 
-          <h2 className="font-serif text-4xl font-light leading-tight sm:text-5xl lg:text-6xl text-white">
+          <h1 className="font-serif text-4xl font-light leading-tight sm:text-5xl lg:text-6xl text-white">
             {t.gallery.title1} <span className="italic text-[#d8b96d]">{t.gallery.title2}</span>
-          </h2>
+          </h1>
 
           <p className="mt-4 text-base leading-relaxed text-stone-400 sm:text-lg font-light">
             {t.gallery.subtitle}
@@ -240,6 +290,7 @@ export const ArtGallery: React.FC<ArtGalleryProps> = ({ onOpenQuote, isFullView 
         </motion.div>
 
         {/* Category Filters */}
+        <h2 className="sr-only">{lang === 'es' ? 'Categorías de la Galería' : 'Gallery Categories'}</h2>
         <div className="mb-10 flex flex-wrap items-center justify-center md:justify-start gap-2">
           {[
             { id: 'todos', label: t.gallery.categories.todos },
@@ -272,10 +323,9 @@ export const ArtGallery: React.FC<ArtGalleryProps> = ({ onOpenQuote, isFullView 
             const itemSubtitle = lang === 'es' ? item.subtitleEs : item.subtitleEn;
 
             return (
-              <motion.figure
+              <motion.div
                 key={item.id}
-                onClick={() => setSelectedIndex(index)}
-                className={`group relative overflow-hidden rounded-2xl border border-stone-800/90 bg-[#121110] cursor-pointer ${
+                className={`group relative overflow-hidden rounded-2xl border border-stone-800/90 bg-[#121110] ${
                   item.aspect || ''
                 }`}
                 initial={{ opacity: 0, y: 24 }}
@@ -284,28 +334,37 @@ export const ArtGallery: React.FC<ArtGalleryProps> = ({ onOpenQuote, isFullView 
                 transition={{ duration: 0.5, delay: index * 0.05 }}
                 whileHover={{ scale: 1.01 }}
               >
-                <img
-                  src={item.src}
-                  alt={item.alt}
-                  width={item.width}
-                  height={item.height}
-                  loading={index > 2 ? 'lazy' : 'eager'}
-                  className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105 group-hover:brightness-90"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-95" />
+                <button
+                  type="button"
+                  onClick={() => setSelectedIndex(index)}
+                  aria-label={`${itemTitle} - ${itemSubtitle}. ${lang === 'es' ? 'Abrir imagen ampliada' : 'Open enlarged view'}`}
+                  className="w-full h-full text-left relative block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c5a059] rounded-2xl overflow-hidden"
+                >
+                  <figure className="h-full w-full">
+                    <img
+                      src={item.src}
+                      alt={item.alt}
+                      width={item.width}
+                      height={item.height}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105 group-hover:brightness-90"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-95" />
 
-                <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5">
-                  <div>
-                    <span className="text-[11px] font-mono text-[#c5a059] uppercase tracking-wider block">
-                      {itemSubtitle}
-                    </span>
-                    <h3 className="font-serif text-lg sm:text-xl text-white font-medium">{itemTitle}</h3>
-                  </div>
-                  <div className="p-2 rounded-lg bg-[#1a1917] border border-[#c5a059]/40 text-[#d8b96d] shrink-0 group-hover:bg-[#c5a059] group-hover:text-stone-950 transition-colors">
-                    <ArrowUpRight className="h-4 w-4" />
-                  </div>
-                </figcaption>
-              </motion.figure>
+                    <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5">
+                      <div>
+                        <span className="text-[11px] font-mono text-[#c5a059] uppercase tracking-wider block">
+                          {itemSubtitle}
+                        </span>
+                        <h2 className="font-serif text-lg sm:text-xl text-white font-medium">{itemTitle}</h2>
+                      </div>
+                      <div className="p-2 rounded-lg bg-[#1a1917] border border-[#c5a059]/40 text-[#d8b96d] shrink-0 group-hover:bg-[#c5a059] group-hover:text-stone-950 transition-colors">
+                        <ArrowUpRight className="h-4 w-4" />
+                      </div>
+                    </figcaption>
+                  </figure>
+                </button>
+              </motion.div>
             );
           })}
         </div>
@@ -352,34 +411,39 @@ export const ArtGallery: React.FC<ArtGalleryProps> = ({ onOpenQuote, isFullView 
       <AnimatePresence>
         {selectedIndex !== null && displayedItems[selectedIndex] && (
           <motion.div
+            ref={lightboxRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
-            aria-label={`Detalle: ${displayedItems[selectedIndex].titleEn}`}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+            aria-labelledby="lightbox-item-title"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md outline-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <button
+              type="button"
               onClick={() => setSelectedIndex(null)}
-              aria-label="Cerrar ventana emergente"
-              className="absolute top-6 right-6 z-10 p-3 rounded-full bg-stone-900/90 text-stone-300 hover:text-white border border-stone-700 hover:border-[#c5a059] transition-colors"
+              aria-label={lang === 'es' ? 'Cerrar ventana emergente' : 'Close image dialog'}
+              className="absolute top-6 right-6 z-10 p-3 rounded-full bg-stone-900/90 text-stone-300 hover:text-white border border-stone-700 hover:border-[#c5a059] transition-colors focus-visible:ring-2 focus-visible:ring-[#c5a059]"
             >
               <X className="w-6 h-6" />
             </button>
 
             <button
+              type="button"
               onClick={handlePrev}
-              aria-label="Imagen anterior"
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-stone-900/90 text-stone-300 hover:text-white border border-stone-700 hover:border-[#c5a059] transition-colors"
+              aria-label={lang === 'es' ? 'Imagen anterior' : 'Previous image'}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-stone-900/90 text-stone-300 hover:text-white border border-stone-700 hover:border-[#c5a059] transition-colors focus-visible:ring-2 focus-visible:ring-[#c5a059]"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
 
             <button
+              type="button"
               onClick={handleNext}
-              aria-label="Siguiente imagen"
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-stone-900/90 text-stone-300 hover:text-white border border-stone-700 hover:border-[#c5a059] transition-colors"
+              aria-label={lang === 'es' ? 'Siguiente imagen' : 'Next image'}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-stone-900/90 text-stone-300 hover:text-white border border-stone-700 hover:border-[#c5a059] transition-colors focus-visible:ring-2 focus-visible:ring-[#c5a059]"
             >
               <ChevronRight className="w-6 h-6" />
             </button>
@@ -405,11 +469,11 @@ export const ArtGallery: React.FC<ArtGalleryProps> = ({ onOpenQuote, isFullView 
                   <span className="text-xs font-mono uppercase tracking-widest text-[#c5a059] block mb-1">
                     {displayedItems[selectedIndex].category}
                   </span>
-                  <h3 className="font-serif text-2xl font-bold text-white mb-2">
+                  <h2 id="lightbox-item-title" className="font-serif text-2xl font-bold text-white mb-2">
                     {lang === 'es'
                       ? displayedItems[selectedIndex].titleEs
                       : displayedItems[selectedIndex].titleEn}
-                  </h3>
+                  </h2>
                   <p className="text-stone-400 text-sm font-light leading-relaxed">
                     {lang === 'es'
                       ? displayedItems[selectedIndex].subtitleEs

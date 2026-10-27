@@ -1,0 +1,26 @@
+# Chef 4 You by Franko
+
+> Private chef and bespoke villa dining experiences led by Chef Franko Salgado in Puerto Vallarta, Nuevo Nayarit, and Punta Mita, Mexico.
+
+Chef 4 You by Franko offers personalized private dining services for villas, private residences, and vacation properties in the Banderas Bay region (Puerto Vallarta, Nuevo Nayarit, Bucerías, Punta Mita, and Sayulita). Each service includes menu planning, ingredient sourcing, on-site preparation, plated table service, and kitchen cleanup. Menus are adapted to dietary preferences and food allergies, including gluten-free, dairy-free, vegetarian, and vegan requests.
+
+## Core Culinary Services
+
+- **Private Villa Tasting Menus**: Multi-course plated tasting dinners prepared in the guest's residence or villa.
+- **Contemporary Mexican Table**: Regional Mexican ingredients and traditional flavor profiles presented in a private dining format.
+- **Romantic Dinner for Two**: Intimate multi-course evening setups for couples in private villas or terraces.
+- **Family & Group Celebrations**: Custom menus for family gatherings, birthdays, anniversaries, and private retreats.
+- **Chef's Table & Cooking Classes**: Interactive culinary sessions and guided tasting experiences.
+
+## Main Pages
+
+- [Home — Chef 4 You by Franko](https://chef4youbyfranko.com/): Overview of private chef services, service coverage in Puerto Vallarta and Riviera Nayarit, and sample menus.
+- [Culinary Experiences](https://chef4youbyfranko.com/experiencias/): Detailed descriptions of private villa dinners, contemporary Mexican tables, romantic evenings, and group celebrations.
+- [About Chef Franko Salgado](https://chef4youbyfranko.com/chef-franko/): Culinary background, philosophy, and hospitality standards of Chef Franko Salgado.
+- [Culinary Gallery](https://chef4youbyfranko.com/galeria/): Visual portfolio of signature dishes, plating techniques, table settings, and private dining events.
+- [Request a Reservation](https://chef4youbyfranko.com/reservar/): Online reservation request form and direct contact options for scheduling a private chef experience.
+
+## Technical & Discovery Resources
+
+- [Sitemap XML](https://chef4youbyfranko.com/sitemap.xml): Canonical URL index for public routes.
+- [AI Resource Catalog](https://chef4youbyfranko.com/ai-catalog.json): Agentic Resource Discovery (ARD 1.0) capability manifest.

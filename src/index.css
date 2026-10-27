@@ -23,6 +23,10 @@
   h1, h2, h3, h4, .font-serif {
     font-family: var(--font-serif);
   }
+  *:focus-visible {
+    outline: 2px solid #c5a059;
+    outline-offset: 2px;
+  }
 }
 
 .status-dot {
@@ -37,4 +41,3 @@
   background-color: #10b981;
   box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
 }
-
