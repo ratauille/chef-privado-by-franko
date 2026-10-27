@@ -259,19 +259,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onOpenAI, onNav
           <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(6,34,37,.65)_0%,transparent_48%)]" />
 
           <div className="relative mx-auto w-full max-w-[1480px] px-6 pb-16 pt-40 sm:pt-44 lg:px-12 lg:pb-24">
-            <h1 className="max-w-4xl">
-              <span className="mb-6 flex items-center gap-3 font-sans text-xs font-semibold uppercase tracking-[0.26em] text-[#bfe0dc]">
-                <span className="h-px w-10 bg-[#bfe0dc]" />
-                {t.hero.badge}
-              </span>
-              <span className="block font-serif text-5xl font-light leading-[0.98] sm:text-7xl lg:text-[96px]">
-                {t.hero.titleLine1}
-                <br />
-                <span className="italic text-[#cfe8e4]">{t.hero.titleLine2}</span>
-              </span>
+            <h1 className="max-w-4xl font-serif text-4xl sm:text-6xl lg:text-7xl font-light leading-[1.08] tracking-tight text-white">
+              Private Chef in Puerto Vallarta &amp; Punta Mita
             </h1>
-            <p className="mt-7 max-w-xl text-base font-light leading-7 sm:leading-8 text-white/85 sm:text-lg">
-              {t.hero.subtitle}
+            <p className="mt-6 max-w-2xl text-base font-light leading-7 sm:leading-8 text-white/90 sm:text-lg">
+              Personalized tasting menus and private villa dining with Chef Franko Salgado, serving Puerto Vallarta, Punta Mita and Nuevo Nayarit.
+            </p>
+            <p className="mt-3 font-serif text-base italic text-[#cfe8e4] sm:text-lg font-light tracking-wide">
+              The art of living, served at your table.
             </p>
             <div className="mt-9 flex flex-col gap-3.5 sm:flex-row sm:flex-wrap">
               <button
