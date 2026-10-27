@@ -181,6 +181,11 @@ export const ReservationPage: React.FC = () => {
               <div className="p-4 rounded-2xl bg-[#1c1b18] border border-stone-800 max-w-md mx-auto text-xs text-stone-400 space-y-1">
                 <p>{t.forms.directContactNote}</p>
                 <p className="font-mono text-[#d8b96d] font-bold text-sm">{formData.phone}</p>
+              
+                <div className="pt-2 border-t border-stone-800/80 text-stone-300 flex items-start gap-2 text-left">
+                  <ShieldCheck className="w-4 h-4 text-[#c5a059] shrink-0 mt-0.5" />
+                  <p>{t.forms.paypalDepositNote}</p>
+                </div>
               </div>
 
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -369,6 +374,13 @@ export const ReservationPage: React.FC = () => {
                     className="w-full pl-11 pr-4 py-3 rounded-xl bg-[#1c1b18] border border-stone-700 focus:border-[#c5a059] text-white placeholder-stone-400 text-sm outline-none transition-colors resize-none"
                   />
                 </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[#181715] border border-[#c5a059]/30 text-stone-300 text-xs sm:text-sm flex items-start gap-3">
+                <ShieldCheck className="w-5 h-5 text-[#c5a059] shrink-0 mt-0.5" />
+                <p className="leading-relaxed">
+                  {t.forms.paypalDepositNote}
+                </p>
               </div>
 
               {error && (

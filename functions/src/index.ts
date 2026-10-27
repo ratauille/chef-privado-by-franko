@@ -317,10 +317,10 @@ export const onReservationCreated = functions.runWith({ secrets: ['GEMINI_API_KE
     }
 
     try {
-      const adminEmail = process.env.CHEF_NOTIFICATION_EMAIL || 'info@chef4you.com';
+      const adminEmail = (process.env.CHEF_NOTIFICATION_EMAIL || 'frankocheff99@gmail.com').trim();
       const siteUrl = process.env.CHEF4YOU_SITE_URL || 'https://chef4youbyfranko.com';
       const rawEmail = String(reservation.email || '').trim();
-      const recipients = Array.from(new Set([rawEmail, adminEmail])).filter(Boolean);
+      const recipients = Array.from(new Set([rawEmail, adminEmail])).filter((e): e is string => Boolean(e) && e !== 'info@chef4you.com');
 
       const clientNameSafe = escapeHtml(reservation.clientName || 'Cliente');
       const dateSafe = escapeHtml(reservation.date || 'Por confirmar');

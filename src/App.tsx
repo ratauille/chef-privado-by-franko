@@ -79,7 +79,11 @@ function AppContent({ initialPath }: AppProps) {
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    const page = pageMetadata[pathname] ?? pageMetadata['/'];
+    const page = pageMetadata[pathname] ?? (pathname === '/' ? pageMetadata['/'] : {
+      title: 'Página no disponible | Chef4You by Franko',
+      description: 'La página solicitada no está disponible en Chef4You by Franko.',
+      noIndex: true,
+    });
     if (!page) return;
     const canonicalUrl = `${siteUrl}${pathname === '/' ? '/' : `${pathname}/`}`;
 
@@ -266,7 +270,55 @@ function AppContent({ initialPath }: AppProps) {
     );
   }
 
-  // Route 7: / (Homepage SPA)
+  // Route 7: 404 / Página no disponible (evita que rutas no publicadas como /privacy muestren Inicio o el borrador)
+  if (pathname !== '/') {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
+        {skipLink}
+        <Navbar
+          currentPath={pathname}
+          onNavigate={navigateTo}
+          onOpenQuote={() => setQuoteOpen(true)}
+          onOpenAI={() => setAiChatOpen(true)}
+        />
+        <main id="main-content" tabIndex={-1} className="py-24 px-4 text-center outline-none">
+          <div className="max-w-md mx-auto space-y-6">
+            <span className="text-[#c5a059] text-xs font-mono uppercase tracking-[0.2em]">404 · Error</span>
+            <h1 className="font-serif text-4xl sm:text-5xl font-light text-white">
+              {lang === 'en' ? 'Page Not Found' : 'Página no disponible'}
+            </h1>
+            <p className="text-stone-400 text-sm leading-relaxed">
+              {lang === 'en'
+                ? 'The requested page is currently unavailable or does not exist.'
+                : 'La página solicitada no está disponible o no existe en este momento.'}
+            </p>
+            <div className="pt-4 flex flex-col sm:flex-row justify-center gap-4">
+              <button
+                type="button"
+                onClick={() => navigateTo('/')}
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#c5a059] to-[#9e7c33] text-stone-950 font-bold text-sm shadow-md hover:brightness-110 transition-all"
+              >
+                {lang === 'en' ? 'Back to Home' : 'Volver al Inicio'}
+              </button>
+              <button
+                type="button"
+                onClick={() => navigateTo('/menu')}
+                className="px-6 py-3 rounded-xl bg-stone-900 border border-stone-700 text-stone-300 text-sm hover:text-white transition-colors"
+              >
+                {lang === 'en' ? 'View Menus' : 'Ver Menús'}
+              </button>
+            </div>
+          </div>
+        </main>
+        <Suspense fallback={null}>
+          <Footer onNavigate={navigateTo} />
+        </Suspense>
+        {globalOverlays}
+      </div>
+    );
+  }
+
+  // Route 8: / (Homepage SPA)
   return (
     <>
       <HomePage

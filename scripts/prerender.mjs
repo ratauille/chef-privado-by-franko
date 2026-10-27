@@ -52,6 +52,13 @@ function replaceMeta(html, route, meta) {
     [/<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i, `<meta property="og:url" content="${canonical}" />`],
   ];
 
+  if (meta.noIndex) {
+    replacements.push([
+      /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/i,
+      '<meta name="robots" content="noindex, nofollow" />',
+    ]);
+  }
+
   return replacements.reduce((result, [pattern, value]) => result.replace(pattern, value), html);
 }
 

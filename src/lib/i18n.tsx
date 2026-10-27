@@ -167,6 +167,7 @@ export interface TranslationDictionary {
     whatsappDirect: string;
     directContactNote: string;
     calendarBookingBtn: string;
+    paypalDepositNote: string;
   };
   chat: {
     title: string;
@@ -408,6 +409,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       whatsappDirect: 'Chat with Chef Franko on WhatsApp',
       directContactNote: 'Need immediate confirmation? Contact Chef Franko directly:',
       calendarBookingBtn: 'Schedule an intro call on Calendar',
+      paypalDepositNote: 'Once availability is confirmed, you will receive instructions to securely pay your deposit via PayPal.',
     },
     chat: {
       title: 'Franko AI',
@@ -796,6 +798,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       whatsappDirect: 'Contactar al Chef Franko por WhatsApp',
       directContactNote: '¿Deseas atención inmediata? Escríbenos directamente:',
       calendarBookingBtn: 'Agendar llamada exploratoria en Calendario',
+      paypalDepositNote: 'Una vez confirmada la disponibilidad, recibirás las instrucciones para pagar tu anticipo de forma segura mediante PayPal.',
     },
     chat: {
       title: 'Franko AI',
