@@ -71,7 +71,7 @@
         ]
       },
       {
-        "regex": "^/(galeria|experiencias|chef-franko|reservar)/?$",
+        "regex": "^/(menu|galeria|experiencias|chef-franko|reservar)/?$",
         "headers": [
           { "key": "Cache-Control", "value": "no-cache, max-age=0, must-revalidate" }
         ]
@@ -95,6 +95,10 @@
       {
         "source": "/.well-known/ai-catalog.json",
         "destination": "/ai-catalog.json"
+      },
+      {
+        "source": "/menu",
+        "destination": "/menu/index.html"
       },
       {
         "source": "/galeria",

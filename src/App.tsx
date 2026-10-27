@@ -81,7 +81,7 @@ function AppContent({ initialPath }: AppProps) {
     if (typeof document === 'undefined') return;
     const page = pageMetadata[pathname] ?? pageMetadata['/'];
     if (!page) return;
-    const canonicalUrl = `${siteUrl}${pathname === '/' ? '/' : pathname}`;
+    const canonicalUrl = `${siteUrl}${pathname === '/' ? '/' : `${pathname}/`}`;
 
     document.title = page.title;
     if (page.lang) document.documentElement.lang = page.lang;

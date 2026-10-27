@@ -14,6 +14,11 @@ const routes = {
     description:
       'Luxury private chef experiences, personalized tasting menus and villa dining in Puerto Vallarta, Punta Mita and Riviera Nayarit. Book Chef Franko.',
   },
+  '/menu': {
+    title: 'Menús y precios | Chef4You by Franko',
+    description:
+      'Explora diez menús de chef privado para grupos de 2 a 20 personas, con precios por persona en MXN. Servicio en Puerto Vallarta, Punta Mita y Nuevo Nayarit.',
+  },
   '/galeria': {
     title: 'Private Chef Gallery | Chef 4 You by Franko',
     description:
