@@ -1,5 +1,8 @@
 import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
+import { getAppCheck } from 'firebase-admin/app-check';
+import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { getMessaging } from 'firebase-admin/messaging';
 import axios from 'axios';
 import { google } from 'googleapis';
 import { GoogleGenAI } from '@google/genai';
@@ -7,7 +10,7 @@ import { v1 as recaptchaEnterprise } from '@google-cloud/recaptcha-enterprise';
 import * as crypto from 'crypto';
 
 admin.initializeApp();
-const db = admin.firestore();
+const db = getFirestore();
 const recaptchaClient = new recaptchaEnterprise.RecaptchaEnterpriseServiceClient();
 const recaptchaSiteKey = process.env.RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n';
 const recaptchaProjectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || 'chef-privado';
@@ -71,9 +74,12 @@ async function verifyRecaptchaToken(token: string, expectedAction: string): Prom
  */
 async function isRateLimited(req: functions.https.Request, actionName: string, maxRequests: number = 10, windowMinutes: number = 15): Promise<boolean> {
   try {
-    const rawIp = (req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || '127.0.0.1').split(',')[0].trim();
+    // Firebase's Express adapter derives req.ip from its trusted edge proxy.
+    // Never parse X-Forwarded-For directly: clients can spoof that header.
+    const sourceIp = req.ip;
+    if (!sourceIp) throw new Error('No se pudo identificar el origen de la solicitud.');
     const windowKey = Math.floor(Date.now() / (windowMinutes * 60 * 1000));
-    const ipHash = crypto.createHash('sha256').update(`${rawIp}-${windowKey}-${actionName}`).digest('hex').slice(0, 16);
+    const ipHash = crypto.createHash('sha256').update(`${sourceIp}-${windowKey}-${actionName}`).digest('hex').slice(0, 16);
 
     const rateLimitRef = db.collection('rate_limits').doc(`${actionName}_${ipHash}`);
     const nowMs = Date.now();
@@ -125,6 +131,18 @@ async function isRateLimited(req: functions.https.Request, actionName: string, m
   } catch (err) {
     functions.logger.error('[RateLimit] Error en transacción de rate limit (Fail-Closed activado):', err);
     return true; // FAIL-CLOSED: bloquear por seguridad ante falla de la BD
+  }
+}
+
+async function requireAppCheck(req: functions.https.Request): Promise<string | null> {
+  const token = String(req.headers['x-firebase-appcheck'] || '').trim();
+  if (!token) return null;
+  try {
+    const claims = await getAppCheck().verifyToken(token);
+    return claims.appId;
+  } catch (err) {
+    functions.logger.warn('[AppCheck] Token inválido o ausente.', err);
+    return null;
   }
 }
 
@@ -269,7 +287,7 @@ Responde UNICAMENTE con el objeto JSON.
           pitchSummary: escapeHtml(aiData.pitchSummary || ''),
           suggestedWhatsappMsg: escapeHtml(aiData.suggestedWhatsappMsg || ''),
         },
-        aiProcessedAt: admin.firestore.FieldValue.serverTimestamp(),
+        aiProcessedAt: FieldValue.serverTimestamp(),
       }, { merge: true });
       functions.logger.info(`Análisis Gemini AI completado para reserva ${reservationId}`);
       return aiData;
@@ -284,7 +302,7 @@ Responde UNICAMENTE con el objeto JSON.
  * 1. TRIGGER NOTIFICACIONES DE RESERVA (100% Firebase Native)
  * Se activa automáticamente al crearse un documento en la colección 'reservations'
  */
-export const onReservationCreated = functions.firestore
+export const onReservationCreated = functions.runWith({ secrets: ['GEMINI_API_KEY'] }).firestore
   .document('reservations/{reservationId}')
   .onCreate(async (snapshot, context) => {
     const reservation = snapshot.data();
@@ -371,7 +389,7 @@ export const onReservationCreated = functions.firestore
       const tokens = adminTokensSnapshot.docs.map((doc) => doc.data().token).filter(Boolean);
 
       if (tokens.length > 0) {
-        await admin.messaging().sendEachForMulticast({
+        await getMessaging().sendEachForMulticast({
           tokens: tokens,
           notification: {
             title: '👨‍🍳 Nueva Reserva Recibida',
@@ -491,7 +509,7 @@ export const apiLead = functions.https.onRequest(async (req, res) => {
 /**
  * 3. ENDPOINT HTTPS /api/assistant/chat - Franko AI Assistant Widget (reCAPTCHA Obligatorio & Rate Limited)
  */
-export const apiAssistantChat = functions.https.onRequest(async (req, res) => {
+export const apiAssistantChat = functions.runWith({ secrets: ['GEMINI_API_KEY'], maxInstances: 3, timeoutSeconds: 30 }).https.onRequest(async (req, res) => {
   setCorsHeaders(req, res);
 
   if (req.method === 'OPTIONS') {
@@ -505,6 +523,8 @@ export const apiAssistantChat = functions.https.onRequest(async (req, res) => {
   }
 
   try {
+    const appId = await requireAppCheck(req);
+    functions.logger.debug(`[AppCheck] Chat request accepted for app ${appId}.`);
     // Rate Limiting (Máx 10 consultas por 15 min por IP hash)
     if (await isRateLimited(req, 'apiAssistantChat', 10, 15)) {
       res.status(429).json({ error: 'Has alcanzado el límite de consultas al asistente. Por favor contáctanos por WhatsApp al +52 322 160 6843.' });
@@ -525,6 +545,7 @@ export const apiAssistantChat = functions.https.onRequest(async (req, res) => {
     }
 
     const message = String(req.body?.message || req.body?.prompt || '').trim();
+    const language = req.body?.language === 'en' ? 'en' : 'es';
     if (!message || message.length > 500) {
       res.status(400).json({ error: 'El mensaje debe contener entre 1 y 500 caracteres.' });
       return;
@@ -540,9 +561,10 @@ export const apiAssistantChat = functions.https.onRequest(async (req, res) => {
     }
 
     const ai = new GoogleGenAI({ apiKey });
+    const responseLanguage = language === 'en' ? 'English' : 'Spanish';
     const prompt = `
 Eres Franko AI, el asistente virtual gastronómico de "Chef4You by Franko Salgado" en Puerto Vallarta y Riviera Nayarit.
-Responde de forma concisa, educada, elegante y atenta a la siguiente consulta del cliente:
+Responde en ${responseLanguage}, de forma concisa, educada, elegante y atenta a la siguiente consulta del cliente:
 "${escapeHtml(message)}"
 
 Información clave sobre Chef Franko:
@@ -550,8 +572,8 @@ Información clave sobre Chef Franko:
 - Zonas de cobertura: Puerto Vallarta, Punta Mita, Sayulita, Nuevo Vallarta, Riviera Nayarit.
 - Formación: Le Cordon Bleu París, ex Chef Ejecutivo Four Seasons.
 - Contacto WhatsApp: +52 322 160 6843.
-- Invita amablemente al cliente a cotizar su evento usando el formulario del sitio o enviando un mensaje directo.
-Responde directamente en español en máximo 3 párrafos cortos.
+- Invita amablemente al cliente a cotizar su evento usando el formulario del sitio o enviando un mensaje directo por WhatsApp.
+Responde directamente en ${responseLanguage} en máximo 3 párrafos cortos. No inventes precios ni confirmes disponibilidad.
 `;
 
     const response = await ai.models.generateContent({
@@ -690,7 +712,7 @@ export const syncGoogleCalendar = functions.runWith({
           blockedDatesBatch.set(docRef, {
             date: startDate,
             summary: escapeHtml(event.summary || 'Fecha Ocupada / Bloqueada'),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
             source: 'GoogleCalendarSync',
           });
         }

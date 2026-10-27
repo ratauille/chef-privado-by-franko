@@ -1,7 +1,19 @@
+import { ClerkProvider } from '@clerk/react';
 import React, { Component, ReactNode } from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { initAppCheck } from './lib/firebase';
+
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '';
+
+if (!import.meta.env.DEV) {
+  try {
+    initAppCheck();
+  } catch (error) {
+    console.error('[AppCheck] No se pudo inicializar la protección del cliente.', error);
+  }
+}
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -52,7 +64,13 @@ const rootElement = document.getElementById('root') as HTMLElement;
 const app = (
   <React.StrictMode>
     <ErrorBoundary>
-      <App />
+      {PUBLISHABLE_KEY ? (
+        <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+          <App />
+        </ClerkProvider>
+      ) : (
+        <App />
+      )}
     </ErrorBoundary>
   </React.StrictMode>
 );

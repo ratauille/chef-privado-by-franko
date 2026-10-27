@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCircle, Sparkles, ShieldCheck, ArrowRight, MessageCircle } from 'lucide-react';
 import { useLanguage } from '../lib/i18n';
 import { leadWhatsAppUrl } from '../lib/leadFallback';
 import { submitLead, preloadRecaptchaEnterprise } from '../lib/leadApi';
+import { generateLeadId } from '../lib/leadDispatcher';
 
 const DRAFT_KEY = 'chef4you_reservation_draft_v1';
 const SMS_REMINDER_BOOKING_URL =
@@ -12,17 +13,25 @@ const SMS_REMINDER_SCRIPT_ID = 'smsreminder-inline-button-script';
 export const ReservationPage: React.FC = () => {
   const { t, lang } = useLanguage();
   const today = new Date().toISOString().split('T')[0];
+  const submittingRef = useRef(false);
 
   const [formData, setFormData] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem(DRAFT_KEY);
-        if (saved) return JSON.parse(saved);
-      } catch {
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return {
+            ...parsed,
+            lead_id: parsed.lead_id || generateLeadId(),
+          };
+        }
+      } catch (e) {
         console.warn('Could not restore reservation draft from localStorage');
       }
     }
     return {
+      lead_id: generateLeadId(),
       clientName: '',
       email: '',
       phone: '',
@@ -46,7 +55,7 @@ export const ReservationPage: React.FC = () => {
     if (typeof window !== 'undefined' && !success) {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
-      } catch {}
+      } catch (e) {}
     }
   }, [formData, success]);
 
@@ -70,24 +79,33 @@ export const ReservationPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (submittingRef.current || loading) return; // Protección estricta contra doble clic
+    submittingRef.current = true;
     setLoading(true);
     setError(null);
 
     try {
-      await submitLead(formData, 'RESERVATION');
+      const result = await submitLead(
+        {
+          ...formData,
+          source: 'reservation_page',
+          landingPage: typeof window !== 'undefined' ? window.location.href : '',
+        },
+        'RESERVATION'
+      );
 
       if (typeof (window as any).trackGA4Event === 'function') {
         (window as any).trackGA4Event('generate_lead', {
           event_category: 'ReservationPage',
           event_label: formData.serviceName,
           value: formData.guests,
+          lead_id: result?.leadId || formData.lead_id,
         });
       }
 
       try {
         localStorage.removeItem(DRAFT_KEY);
-      } catch {}
+      } catch (e) {}
 
       setSuccess(true);
     } catch (err: any) {
@@ -96,6 +114,7 @@ export const ReservationPage: React.FC = () => {
           'Ocurrió un error al enviar tu solicitud. Se han conservado tus datos para que reintentes.'
       );
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   };
@@ -184,7 +203,12 @@ export const ReservationPage: React.FC = () => {
                   type="button"
                   onClick={() => {
                     setSuccess(false);
+                    let freshLeadId = '';
+                    try {
+                      freshLeadId = generateLeadId();
+                    } catch (e) {}
                     setFormData({
+                      lead_id: freshLeadId,
                       clientName: '',
                       email: '',
                       phone: '',

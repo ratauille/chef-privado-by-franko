@@ -8,13 +8,15 @@ export interface LeadDraft {
   notes: string;
 }
 
-const CHEF_WA_NUMBER = '5213221606843';
+// Canonical commercial number documented by the main site and secondary source.
+export const CHEF_WHATSAPP_NUMBER = '5213221606843';
+export const CHEF_WA_NUMBER = CHEF_WHATSAPP_NUMBER;
 
 export function chefWhatsAppUrl(customMessage?: string): string {
   const defaultMsg =
     'Hola Chef Franko, quisiera información para una experiencia de chef privado.';
   const text = (customMessage || defaultMsg).trim();
-  return `https://wa.me/${CHEF_WA_NUMBER}?text=${encodeURIComponent(text)}`;
+  return `https://wa.me/${CHEF_WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }
 
 // Opening WhatsApp is not a saved lead; the visitor must send the message.
@@ -46,5 +48,5 @@ export function leadWhatsAppUrl(lead: LeadDraft, lang: 'es' | 'en' = 'es'): stri
           .filter(Boolean)
           .join('\n');
 
-  return `https://wa.me/${CHEF_WA_NUMBER}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${CHEF_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }

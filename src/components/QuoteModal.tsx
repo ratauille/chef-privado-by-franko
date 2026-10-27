@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Calendar, Users, Mail, Phone, User, FileText, CheckCircle2, AlertCircle, Sparkles, MessageCircle } from 'lucide-react';
 import { useLanguage } from '../lib/i18n';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { leadWhatsAppUrl } from '../lib/leadFallback';
 import { submitLead, preloadRecaptchaEnterprise } from '../lib/leadApi';
+import { generateLeadId } from '../lib/leadDispatcher';
 
 interface QuoteModalProps {
   isOpen: boolean;
@@ -14,17 +15,24 @@ const DRAFT_KEY = 'chef4you_quote_modal_draft';
 
 export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
   const { t, lang } = useLanguage();
-  const containerRef = useFocusTrap({ isOpen, onClose });
   const today = new Date().toISOString().split('T')[0];
+  const submittingRef = useRef(false);
 
   const [formData, setFormData] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem(DRAFT_KEY);
-        if (saved) return JSON.parse(saved);
-      } catch {}
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return {
+            ...parsed,
+            lead_id: parsed.lead_id || generateLeadId(),
+          };
+        }
+      } catch (e) {}
     }
     return {
+      lead_id: generateLeadId(),
       clientName: '',
       email: '',
       phone: '',
@@ -39,6 +47,38 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const resetFormWithFreshId = () => {
+    try {
+      setFormData({
+        lead_id: generateLeadId(),
+        clientName: '',
+        email: '',
+        phone: '',
+        date: '',
+        guests: 6,
+        serviceName: 'Cena Degustación de Autor 5 Tiempos',
+        notes: '',
+      });
+    } catch (e) {}
+  };
+
+  const handleModalClose = () => {
+    if (success) {
+      setSuccess(false);
+      resetFormWithFreshId();
+    }
+    onClose();
+  };
+
+  const containerRef = useFocusTrap({ isOpen, onClose: handleModalClose });
+
+  useEffect(() => {
+    if (isOpen && success) {
+      setSuccess(false);
+      resetFormWithFreshId();
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen) {
       preloadRecaptchaEnterprise();
@@ -49,7 +89,7 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
     if (typeof window !== 'undefined' && isOpen && !success) {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
-      } catch {}
+      } catch (e) {}
     }
   }, [formData, isOpen, success]);
 
@@ -57,29 +97,40 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (submittingRef.current || loading) return; // Protección estricta e instantánea contra doble clic
+    submittingRef.current = true;
     setLoading(true);
     setError(null);
 
     try {
-      await submitLead(formData, 'LEAD');
+      const result = await submitLead(
+        {
+          ...formData,
+          source: 'quote_modal',
+          landingPage: typeof window !== 'undefined' ? window.location.href : '',
+        },
+        'LEAD'
+      );
 
+      // Track GA4 conversion event una sola vez tras confirmacion de exito
       if (typeof (window as any).trackGA4Event === 'function') {
         (window as any).trackGA4Event('generate_lead', {
           event_category: 'ReservationModal',
           event_label: formData.serviceName,
           value: formData.guests,
+          lead_id: result?.leadId || formData.lead_id,
         });
       }
 
       try {
         localStorage.removeItem(DRAFT_KEY);
-      } catch {}
+      } catch (e) {}
 
       setSuccess(true);
     } catch (err: any) {
       setError(err.message || 'Ocurrió un error al enviar la reserva.');
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   };
@@ -89,18 +140,18 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
   return (
     <div
       ref={containerRef}
-      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto outline-none"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto"
     >
       <div className="bg-[#141312] border border-stone-800 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden relative my-8 text-stone-100 animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="bg-[#0a0a0a] border-b border-stone-800 p-6 sm:p-8 relative">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleModalClose}
             aria-label={t.forms.closeBtn}
             className="absolute top-6 right-6 text-stone-400 hover:text-white p-2 rounded-full hover:bg-stone-900 border border-transparent hover:border-stone-800 transition-colors"
           >
@@ -109,15 +160,17 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#181715] border border-[#c5a059]/40 text-[#d8b96d] text-[11px] font-semibold uppercase tracking-widest mb-2">
             <Sparkles className="w-3.5 h-3.5 text-[#c5a059]" />
-            <span>{t.forms.quoteBadge}</span>
+            <span>Cotización Directa</span>
           </div>
 
-          <h2 id="modal-title" className="font-serif text-2xl sm:text-3xl font-light text-white">
-            {t.forms.quoteTitle}
-          </h2>
+          <h3 id="modal-title" className="font-serif text-2xl sm:text-3xl font-light text-white">
+            {lang === 'en' ? 'Book Your Culinary Experience' : 'Reserva Tu Experiencia Culinaria'}
+          </h3>
 
           <p className="text-xs text-stone-400 mt-1 font-light">
-            {t.forms.quoteSubtitle}
+            {lang === 'en'
+              ? 'Complete your details to check availability and receive your personalized menu.'
+              : 'Completa tus datos para consultar disponibilidad y recibir tu menú personalizado.'}
           </p>
         </div>
 
@@ -146,7 +199,7 @@ export const QuoteModal: React.FC<QuoteModalProps> = ({ isOpen, onClose }) => {
                 </a>
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleModalClose}
                   className="w-full sm:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-[#c5a059] to-[#9e7c33] text-stone-950 font-bold text-xs shadow-md"
                 >
                   {t.forms.closeBtn}

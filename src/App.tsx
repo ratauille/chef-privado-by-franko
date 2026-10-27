@@ -2,7 +2,20 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { HomePage } from './components/HomePage';
+import { MenuPage } from './components/MenuPage';
 import { LanguageProvider, useLanguage } from './lib/i18n';
+import { pageMetadata, siteUrl } from './lib/pageMetadata';
+
+function setMeta(attribute: 'name' | 'property', key: string, content: string) {
+  if (typeof document === 'undefined') return;
+  let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
+  if (!element) {
+    element = document.createElement('meta');
+    element.setAttribute(attribute, key);
+    document.head.appendChild(element);
+  }
+  element.content = content;
+}
 
 // Lazy-loaded components for optimal bundle splitting and fast mobile LCP
 const Experiences = lazy(() => import('./components/Experiences').then(m => ({ default: m.Experiences })));
@@ -30,6 +43,7 @@ const FloatingFrankoAIButton: React.FC<{ onClick: () => void; hidden?: boolean }
   const { lang } = useLanguage();
   return (
     <button
+      id="franko-ai-trigger"
       type="button"
       onClick={onClick}
       aria-label={lang === 'en' ? 'Open Franko AI Assistant' : 'Abrir asistente Franko AI'}
@@ -63,9 +77,35 @@ function AppContent({ initialPath }: AppProps) {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const page = pageMetadata[pathname] ?? pageMetadata['/'];
+    if (!page) return;
+    const canonicalUrl = `${siteUrl}${pathname === '/' ? '/' : pathname}`;
+
+    document.title = page.title;
+    if (page.lang) document.documentElement.lang = page.lang;
+    setMeta('name', 'description', page.description);
+    setMeta('name', 'robots', page.noIndex ? 'noindex, nofollow' : 'index, follow');
+    setMeta('property', 'og:title', page.title);
+    setMeta('property', 'og:description', page.description);
+    setMeta('property', 'og:url', canonicalUrl);
+    setMeta('name', 'twitter:title', page.title);
+    setMeta('name', 'twitter:description', page.description);
+
+    let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = canonicalUrl;
+  }, [pathname]);
+
   const navigateTo = (path: string) => {
-    window.history.pushState({}, '', path);
-    setPathname(normalizePathname(path));
+    const normalizedPath = normalizePathname(path);
+    window.history.pushState({}, '', normalizedPath);
+    setPathname(normalizedPath);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -77,22 +117,12 @@ function AppContent({ initialPath }: AppProps) {
   const skipLink = (
     <a
       href="#main-content"
-      className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-[#c5a059] focus:text-stone-950 focus:font-bold focus:rounded-xl focus:shadow-2xl focus:outline-none focus:ring-2 focus:ring-white"
+      className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[#c5a059] focus:text-black focus:font-bold focus:rounded-md focus:shadow-lg focus:outline-none"
     >
       {lang === 'en' ? 'Skip to main content' : 'Saltar al contenido principal'}
     </a>
   );
 
-  // Route 1: /admin
-  if (pathname === '/admin' || pathname.startsWith('/admin')) {
-    return (
-      <Suspense fallback={<LoadingSpinner />}>
-        <AdminDashboard />
-      </Suspense>
-    );
-  }
-
-  // Shared modals and floating Franko AI launcher for all public routes
   const globalOverlays = (
     <>
       <FloatingFrankoAIButton hidden={aiChatOpen} onClick={() => setAiChatOpen(true)} />
@@ -108,6 +138,15 @@ function AppContent({ initialPath }: AppProps) {
       </Suspense>
     </>
   );
+
+  // Route 1: /admin
+  if (pathname === '/admin' || pathname.startsWith('/admin')) {
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <AdminDashboard />
+      </Suspense>
+    );
+  }
 
   // Route 2: /galeria
   if (pathname === '/galeria') {
@@ -181,7 +220,29 @@ function AppContent({ initialPath }: AppProps) {
     );
   }
 
-  // Route 5: /reservar
+  // Route 5: /menu
+  if (pathname === '/menu') {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
+        {skipLink}
+        <Navbar
+          currentPath={pathname}
+          onNavigate={navigateTo}
+          onOpenQuote={() => setQuoteOpen(true)}
+          onOpenAI={() => setAiChatOpen(true)}
+        />
+        <main id="main-content" tabIndex={-1} className="outline-none">
+          <MenuPage />
+        </main>
+        <Suspense fallback={null}>
+          <Footer onNavigate={navigateTo} />
+        </Suspense>
+        {globalOverlays}
+      </div>
+    );
+  }
+
+  // Route 6: /reservar
   if (pathname === '/reservar') {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
@@ -205,7 +266,7 @@ function AppContent({ initialPath }: AppProps) {
     );
   }
 
-  // Route 6: / (Homepage SPA)
+  // Route 7: / (Homepage SPA)
   return (
     <>
       <HomePage

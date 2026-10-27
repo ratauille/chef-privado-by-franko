@@ -17,9 +17,27 @@ export const ChefBio: React.FC<ChefBioProps> = ({ onOpenQuote, isFullView }) => 
       className={`py-24 bg-[#0a0a0a] text-stone-100 border-b border-stone-800/80 ${isFullView ? 'min-h-[85vh]' : ''}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-        {/* Narrative */}
+        {/* Chef Portrait Image */}
         <motion.div
-          className="lg:col-span-12 space-y-6"
+          className="lg:col-span-5"
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+        >
+          <img
+            src="/assets/chef_franko_portrait.jpg"
+            alt={lang === 'es' ? 'Retrato del Chef Franko Salgado' : 'Portrait of Chef Franko Salgado'}
+            width="1254"
+            height="1254"
+            loading="lazy"
+            className="w-full h-[520px] object-cover rounded-3xl border border-stone-800 shadow-2xl"
+          />
+        </motion.div>
+
+        {/* Narrative & Pillars */}
+        <motion.div
+          className="lg:col-span-7 space-y-6"
           initial={{ opacity: 0, x: 20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -30,7 +48,7 @@ export const ChefBio: React.FC<ChefBioProps> = ({ onOpenQuote, isFullView }) => 
             <span>{t.bio.badge}</span>
           </div>
 
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-light text-white leading-tight">
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-light text-white leading-tight">
             {t.bio.title1} <span className="italic text-[#d8b96d]">{t.bio.title2}</span>
           </h1>
 
