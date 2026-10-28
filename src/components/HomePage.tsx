@@ -245,16 +245,25 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onOpenAI, onNav
       <main id="main-content" tabIndex={-1} className="outline-none">
         {/* Hero Section — Instant paint without JS opacity delay for fast mobile LCP */}
         <section className="relative flex min-h-[92vh] items-end overflow-hidden bg-[#0d4145] text-white">
-          <img
-            src="/assets/chef_franko_team.webp"
-            alt="Chef Franko Salgado and his culinary team preparing a private dining experience in Puerto Vallarta"
-            width={1024}
-            height={722}
-            loading="eager"
-            fetchPriority="high"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover object-center"
-          />
+          <picture>
+            <source
+              media="(max-width: 640px)"
+              srcSet="/assets/chef_franko_team_mobile.webp"
+              type="image/webp"
+              width={640}
+              height={451}
+            />
+            <img
+              src="/assets/chef_franko_team.webp"
+              alt="Chef Franko Salgado and his culinary team preparing a private dining experience in Puerto Vallarta"
+              width={1024}
+              height={722}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover object-center"
+            />
+          </picture>
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,42,45,.92)_0%,rgba(7,42,45,.62)_48%,rgba(7,42,45,.18)_100%)]" />
           <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(6,34,37,.65)_0%,transparent_48%)]" />
 

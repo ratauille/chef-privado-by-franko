@@ -55,12 +55,29 @@
     <meta name="google-site-verification" content="ybASeiaEEgpYLS_fAArM0LgZF1kcVBSB-_zTgQLtljY" />
 
     <!-- Preload Hero LCP image for mobile & desktop -->
-    <link rel="preload" as="image" href="/assets/chef_franko_team.webp" type="image/webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/assets/chef_franko_team_mobile.webp" media="(max-width: 640px)" type="image/webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/assets/chef_franko_team.webp" media="(min-width: 641px)" type="image/webp" fetchpriority="high" />
 
     <!-- Google Fonts: Cormorant Garamond + Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+      />
+    </noscript>
 
     <!-- Deferred Analytics (GTM, GA4 & Google Ads) to eliminate mobile main-thread blocking -->
     <script>
