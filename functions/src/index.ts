@@ -271,7 +271,7 @@ Responde UNICAMENTE con el objeto JSON.
 `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
     });
 
@@ -577,7 +577,7 @@ Responde directamente en ${responseLanguage} en máximo 3 párrafos cortos. No i
 `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
     });
 
