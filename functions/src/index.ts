@@ -72,12 +72,30 @@ async function verifyRecaptchaToken(token: string, expectedAction: string): Prom
  * Decisión explícita: Se adopta FAIL-CLOSED por seguridad en producción (ante un error de base de datos,
  * se deniega el tráfico potencialmente abusivo para proteger la infraestructura y cuotas).
  */
-async function isRateLimited(req: functions.https.Request, actionName: string, maxRequests: number = 10, windowMinutes: number = 15): Promise<boolean> {
+interface RateLimitCheckResult {
+  allowed: boolean;
+  statusCode?: 429 | 503;
+  error?: string;
+}
+
+/**
+ * Helper: Rate limiting atómico basado en transacciones Firestore con TTL y política de fallo cerrado (Fail-Closed).
+ * - Código 429: Límite de peticiones legítimamente alcanzado.
+ * - Código 503: Falla de infraestructura en la base de datos (Fail-Closed preventivo).
+ */
+async function checkRateLimit(
+  req: functions.https.Request,
+  actionName: string,
+  maxRequests: number = 10,
+  windowMinutes: number = 15
+): Promise<RateLimitCheckResult> {
   try {
-    // Firebase's Express adapter derives req.ip from its trusted edge proxy.
-    // Never parse X-Forwarded-For directly: clients can spoof that header.
     const sourceIp = req.ip;
-    if (!sourceIp) throw new Error('No se pudo identificar el origen de la solicitud.');
+    if (!sourceIp) {
+      functions.logger.warn('[RateLimit] No se pudo identificar el origen de la solicitud.');
+      return { allowed: false, statusCode: 503, error: 'No se pudo verificar el origen de la solicitud.' };
+    }
+
     const windowKey = Math.floor(Date.now() / (windowMinutes * 60 * 1000));
     const ipHash = crypto.createHash('sha256').update(`${sourceIp}-${windowKey}-${actionName}`).digest('hex').slice(0, 16);
 
@@ -85,17 +103,17 @@ async function isRateLimited(req: functions.https.Request, actionName: string, m
     const nowMs = Date.now();
     const expiresAt = new Date(nowMs + windowMinutes * 60 * 1000);
 
-    const isLimited = await db.runTransaction(async (transaction) => {
+    const result = await db.runTransaction(async (transaction) => {
       const docSnap = await transaction.get(rateLimitRef);
 
       if (!docSnap.exists) {
         transaction.set(rateLimitRef, {
           count: 1,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp(),
           expiresAt: expiresAt,
           ttl: Math.floor(expiresAt.getTime() / 1000),
         });
-        return false;
+        return { allowed: true };
       }
 
       const data = docSnap.data();
@@ -105,32 +123,36 @@ async function isRateLimited(req: functions.https.Request, actionName: string, m
       if (docExpiresAt && docExpiresAt <= nowMs) {
         transaction.set(rateLimitRef, {
           count: 1,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp(),
           expiresAt: expiresAt,
           ttl: Math.floor(expiresAt.getTime() / 1000),
         });
-        return false;
+        return { allowed: true };
       }
 
       const currentCount = data?.count || 0;
       if (currentCount >= maxRequests) {
-        return true;
+        return { allowed: false, statusCode: 429 as const, error: 'Has alcanzado el límite de peticiones permitidas.' };
       }
 
       transaction.update(rateLimitRef, {
-        count: admin.firestore.FieldValue.increment(1),
+        count: FieldValue.increment(1),
       });
 
-      return false;
+      return { allowed: true };
     });
 
-    if (isLimited) {
+    if (!result.allowed && result.statusCode === 429) {
       functions.logger.warn(`[RateLimit] Peticiones excedidas para acción ${actionName}`);
     }
-    return isLimited;
+    return result;
   } catch (err) {
     functions.logger.error('[RateLimit] Error en transacción de rate limit (Fail-Closed activado):', err);
-    return true; // FAIL-CLOSED: bloquear por seguridad ante falla de la BD
+    return {
+      allowed: false,
+      statusCode: 503,
+      error: 'Servicio temporalmente no disponible por mantenimiento de infraestructura.',
+    };
   }
 }
 
@@ -424,7 +446,12 @@ export const apiLead = functions.https.onRequest(async (req, res) => {
 
   try {
     // Rate Limiting (Máx 5 peticiones por 15 min por IP hash con Fail-Closed)
-    if (await isRateLimited(req, 'apiLead', 5, 15)) {
+    const rateCheck = await checkRateLimit(req, 'apiLead', 5, 15);
+    if (!rateCheck.allowed) {
+      if (rateCheck.statusCode === 503) {
+        res.status(503).json({ error: 'Servicio temporalmente no disponible. Por favor intente más tarde.' });
+        return;
+      }
       res.status(429).json({ error: 'Demasiadas solicitudes. Por favor intente más tarde.' });
       return;
     }
@@ -469,14 +496,14 @@ export const apiLead = functions.https.onRequest(async (req, res) => {
 
       transaction.set(idempotencyRef, {
         reservationId: newReservationRef.id,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
         clientHash: crypto.createHash('sha256').update(validation.cleanData.email).digest('hex').slice(0, 10),
         ttl: Math.floor((Date.now() + 10 * 60 * 1000) / 1000),
       });
 
       transaction.set(newReservationRef, {
         ...validation.cleanData,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
         status: 'pending',
       });
 
@@ -525,8 +552,13 @@ export const apiAssistantChat = functions.runWith({ secrets: ['GEMINI_API_KEY'],
   try {
     const appId = await requireAppCheck(req);
     functions.logger.debug(`[AppCheck] Chat request accepted for app ${appId}.`);
-    // Rate Limiting (Máx 10 consultas por 15 min por IP hash)
-    if (await isRateLimited(req, 'apiAssistantChat', 10, 15)) {
+    // Rate Limiting (Máx 10 consultas por 15 min por IP hash con Fail-Closed 503 / 429)
+    const rateCheck = await checkRateLimit(req, 'apiAssistantChat', 10, 15);
+    if (!rateCheck.allowed) {
+      if (rateCheck.statusCode === 503) {
+        res.status(503).json({ error: 'Servicio de asistente temporalmente no disponible por mantenimiento. Por favor intenta más tarde o contáctanos por WhatsApp al +52 322 160 6843.' });
+        return;
+      }
       res.status(429).json({ error: 'Has alcanzado el límite de consultas al asistente. Por favor contáctanos por WhatsApp al +52 322 160 6843.' });
       return;
     }
@@ -609,7 +641,12 @@ export const handleNewBooking = functions.https.onRequest(async (req, res) => {
   try {
     functions.logger.warn('[DEPRECATED] Solicitud recibida en handleNewBooking. Este endpoint está obsoleto.');
 
-    if (await isRateLimited(req, 'handleNewBooking', 5, 15)) {
+    const rateCheck = await checkRateLimit(req, 'handleNewBooking', 5, 15);
+    if (!rateCheck.allowed) {
+      if (rateCheck.statusCode === 503) {
+        res.status(503).json({ error: 'Servicio temporalmente no disponible.' });
+        return;
+      }
       res.status(429).json({ error: 'Demasiadas solicitudes.' });
       return;
     }
@@ -641,12 +678,12 @@ export const handleNewBooking = functions.https.onRequest(async (req, res) => {
 
       transaction.set(idempotencyRef, {
         reservationId: newReservationRef.id,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
       });
 
       transaction.set(newReservationRef, {
         ...validation.cleanData,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
         status: 'pending',
       });
 
