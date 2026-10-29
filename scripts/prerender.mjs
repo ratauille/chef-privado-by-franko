@@ -34,6 +34,11 @@ const routes = {
     description:
       'Meet Chef Franko Salgado and discover refined private dining shaped around your guests, setting and celebration.',
   },
+  '/privacy': {
+    title: 'Aviso de Privacidad | Chef4You by Franko',
+    description:
+      'Aviso de privacidad y tratamiento de datos personales de Chef4You by Franko Salgado en Puerto Vallarta y Riviera Nayarit. Información sobre derechos ARCO y canales de atención.',
+  },
   '/reservar': {
     title: 'Reserve a Private Chef Experience | Chef Franko',
     description:

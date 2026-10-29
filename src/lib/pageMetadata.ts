@@ -28,6 +28,10 @@ export const pageMetadata: Record<string, { title: string; description: string; 
     title: 'Solicita una experiencia privada | Chef4You',
     description: 'Cuéntanos sobre tu grupo, fecha y ocasión para planear una experiencia de chef privado en Puerto Vallarta, Punta Mita o Nuevo Nayarit.',
   },
+  '/privacy': {
+    title: 'Aviso de Privacidad | Chef4You by Franko',
+    description: 'Aviso de privacidad y tratamiento de datos personales de Chef4You by Franko Salgado en Puerto Vallarta y Riviera Nayarit. Información sobre derechos ARCO y canales de atención.',
+  },
   '/admin': {
     title: 'Administración | Chef4You by Franko',
     description: 'Panel administrativo de Chef4You by Franko.',

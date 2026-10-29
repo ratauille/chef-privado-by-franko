@@ -1,6 +1,6 @@
 import React from 'react';
 import { contactConfig } from '../lib/contactConfig';
-import { ShieldCheck, AlertCircle, ArrowLeft, Mail, Phone, Lock, ExternalLink, Database, Globe } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, Mail, Phone, Lock, ExternalLink, Database, Globe, CreditCard, Clock } from 'lucide-react';
 import { useLanguage } from '../lib/i18n';
 
 interface PrivacyPageProps {
@@ -42,67 +42,45 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
           </div>
 
           <h1 className="font-serif text-3xl sm:text-5xl font-light text-white tracking-tight">
-            {lang === 'es'
-              ? 'Aviso de Privacidad (Borrador Técnico)'
-              : 'Privacy Notice (Technical Draft)'}
+            {lang === 'es' ? 'Aviso de Privacidad' : 'Privacy Notice'}
           </h1>
 
           <p className="text-stone-400 text-sm sm:text-base leading-relaxed">
             {lang === 'es'
-              ? 'Este documento describe de forma estricta y verificable el tratamiento técnico de datos personales, formularios web, cookies y servicios de terceros operados en chef4youbyfranko.com. Basado en la auditoría de código del proyecto y pendiente de ratificación jurídica por el titular.'
-              : 'This document strictly details the verified technical processing of personal data, web forms, storage and third-party integrations operating on chef4youbyfranko.com. Derived from verified codebase audit, pending final legal ratification by the owner.'}
+              ? 'El presente Aviso de Privacidad detalla de forma clara, veraz y transparente el tratamiento, uso, conservación y protección de los datos personales recabados a través de chef4youbyfranko.com y sus canales directos de atención culinaria.'
+              : 'This Privacy Notice provides clear, accurate, and transparent details regarding the processing, use, retention, and protection of personal data collected through chef4youbyfranko.com and direct culinary reservation channels.'}
           </p>
 
-          <div className="p-4 rounded-2xl bg-amber-950/30 border border-amber-600/40 text-amber-200 text-xs sm:text-sm space-y-2">
-            <div className="flex items-center gap-2 font-semibold text-amber-300">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{lang === 'es' ? 'Nota Informativa de Borrador' : 'Draft Status Notice'}</span>
-            </div>
-            <p className="leading-relaxed">
-              {lang === 'es'
-                ? 'Los campos marcados como [Pendiente de confirmación por el propietario] corresponden a información legal, fiscal o de gobierno corporativo que debe ser ratificada formalmente por el titular antes de la publicación jurídica definitiva.'
-                : 'Items marked as [Pending owner confirmation] correspond to legal, fiscal, or corporate information that must be formally confirmed by the business owner prior to final publication.'}
-            </p>
-          </div>
+          <p className="text-stone-500 text-xs">
+            {lang === 'es' ? 'Última actualización: Octubre de 2026' : 'Last updated: October 2026'}
+          </p>
         </header>
 
         {/* Section 1: Data Controller */}
         <section className="space-y-4">
           <h2 className="font-serif text-2xl text-white flex items-center gap-2.5">
             <Lock className="w-5 h-5 text-[#c5a059]" />
-            <span>{lang === 'es' ? '1. Identidad del Responsable' : '1. Data Controller Identity'}</span>
+            <span>{lang === 'es' ? '1. Identidad y Domicilio del Responsable' : '1. Data Controller Identity & Location'}</span>
           </h2>
           <div className="rounded-2xl bg-[#141312] border border-stone-800 p-6 space-y-3 text-sm text-stone-300 leading-relaxed">
             <p>
-              <strong>{lang === 'es' ? 'Marca Comercial:' : 'Trade Name:'}</strong> Chef4You by Franko Salgado / Chef 4 You.
+              <strong>{lang === 'es' ? 'Marca Comercial / Proyecto:' : 'Brand / Project:'}</strong> Chef4You by Franko Salgado / Chef 4 You.
             </p>
             <p>
-              <strong>{lang === 'es' ? 'Titular / Chef Responsable:' : 'Culinary Director:'}</strong> Chef Franko Salgado.
+              <strong>{lang === 'es' ? 'Responsable del Tratamiento:' : 'Data Controller:'}</strong> Franko Salgado (Titular y Chef Propietario).
             </p>
             <p>
-              <strong>{lang === 'es' ? 'Canal Oficial de Contacto:' : 'Official Contact Email:'}</strong>{' '}
-              {contactConfig.email ? (
-                <a href={"mailto:" + contactConfig.email} className="text-[#d8b96d] underline">{contactConfig.email}</a>
-              ) : (
-                <span className="text-amber-300 font-mono text-xs">[{lang === 'es' ? 'Correo oficial pendiente de confirmación por el propietario' : 'Official email pending owner confirmation'}]</span>
-              )}
+              <strong>{lang === 'es' ? 'Domicilio de Referencia para Solicitudes:' : 'Reference Location for Inquiries:'}</strong>{' '}
+              Puerto Vallarta, Jalisco, C.P. 48300, México (operando servicios privados en Puerto Vallarta, Punta Mita y Nuevo Nayarit).
             </p>
             <p>
-              <strong>{lang === 'es' ? 'Teléfono Comercial:' : 'Commercial Phone:'}</strong>{' '}
+              <strong>{lang === 'es' ? 'Canal Oficial de Privacidad y Derechos ARCO:' : 'Official Privacy & Data Rights Contact:'}</strong>{' '}
+              <a href="mailto:frankocheff99@gmail.com" className="text-[#d8b96d] underline font-medium">frankocheff99@gmail.com</a>
+            </p>
+            <p>
+              <strong>{lang === 'es' ? 'Teléfono Comercial y WhatsApp:' : 'Direct Phone & WhatsApp:'}</strong>{' '}
               <a href="https://wa.me/523221606843" className="text-[#d8b96d] underline">+52 322 160 6843</a>
             </p>
-            <p>
-              <strong>{lang === 'es' ? 'Zona Geográfica de Servicio:' : 'Service Area:'}</strong> Puerto Vallarta (Jalisco), Punta Mita y Nuevo Nayarit (Nayarit), México.
-            </p>
-            <div className="mt-4 p-3.5 rounded-xl bg-stone-900/80 border border-amber-800/40 text-amber-200/90 text-xs space-y-1">
-              <p className="font-semibold">{lang === 'es' ? '[Pendiente de confirmación por el propietario]:' : '[Pending owner confirmation]:'}</p>
-              <ul className="list-disc list-inside space-y-0.5 text-stone-300">
-                <li>{lang === 'es' ? 'Razón Social formal (Persona Física con Actividad Empresarial o Persona Moral).' : 'Formal registered legal entity name.'}</li>
-                <li>{lang === 'es' ? 'Registro Federal de Contribuyentes (RFC).' : 'Tax Identification Number (RFC).'}</li>
-                <li>{lang === 'es' ? 'Domicilio fiscal y físico completo para efectos de notificación legal.' : 'Complete legal and fiscal street address for legal notices.'}</li>
-                <li>{lang === 'es' ? 'Correo electrónico exclusivo designado para el ejercicio de Derechos ARCO.' : 'Designated privacy officer email address for data subject requests.'}</li>
-              </ul>
-            </div>
           </div>
         </section>
 
@@ -115,40 +93,40 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
           <div className="rounded-2xl bg-[#141312] border border-stone-800 p-6 space-y-4 text-sm text-stone-300 leading-relaxed">
             <p>
               {lang === 'es'
-                ? 'A través del sitio web se recopilan exclusivamente los datos que el usuario proporciona voluntariamente mediante los siguientes canales técnicos:'
-                : 'The website only collects personal data provided voluntarily by visitors across the following technical touchpoints:'}
+                ? 'A través del sitio web únicamente se recopilan los datos personales proporcionados de forma voluntaria por los comensales e interesados a través de los siguientes canales:'
+                : 'The website only collects personal data voluntarily provided by clients and guests through the following points of contact:'}
             </p>
-            <ul className="list-disc list-inside space-y-2 pl-2">
+            <ul className="list-disc list-inside space-y-2.5 pl-2 text-stone-300">
               <li>
                 <strong>{lang === 'es' ? 'Formularios de Cotización y Reserva (QuoteModal y ReservationPage):' : 'Quote & Reservation Forms:'}</strong>
                 <span className="block pl-5 text-stone-400 mt-1">
                   {lang === 'es'
-                    ? 'Nombre completo, correo electrónico, número de teléfono, fecha tentativa del evento, número de comensales, menú o experiencia solicitada y notas dietéticas o alergias alimentarias.'
-                    : 'Full name, email address, telephone number, proposed event date, guest count, menu/experience selection, and dietary preferences or allergy notes.'}
+                    ? 'Nombre completo, correo electrónico, número de teléfono o WhatsApp, fecha tentativa del evento, número de comensales, ubicación o villa de servicio, menú o experiencia solicitada, y requerimientos dietéticos o alergias alimentarias.'
+                    : 'Full name, email address, telephone or WhatsApp number, proposed event date, guest count, villa or venue location, chosen menu/experience, and dietary restrictions or food allergies.'}
                 </span>
               </li>
               <li>
                 <strong>{lang === 'es' ? 'Asistente Gastronómico Virtual (Franko AI Chat):' : 'Virtual Assistant (Franko AI Chat):'}</strong>
                 <span className="block pl-5 text-stone-400 mt-1">
                   {lang === 'es'
-                    ? 'Mensajes y consultas enviadas en la ventana de chat, idioma de preferencia e historial temporal de la conversación (mantenido únicamente en memoria durante la sesión activa).'
-                    : 'Messages and culinary queries submitted in the chat interface, session language, and in-memory conversation history during the active browser session.'}
+                    ? 'Consultas, preferencias de menú e historial de la conversación, mantenidos en memoria únicamente durante la sesión activa del usuario para brindarle orientación culinaria inmediata.'
+                    : 'Culinary questions, menu preferences, and active session chat history, kept strictly in-memory during the active browser session to assist with real-time recommendations.'}
                 </span>
               </li>
               <li>
-                <strong>{lang === 'es' ? 'Contacto Directo vía WhatsApp:' : 'Direct WhatsApp Messaging:'}</strong>
+                <strong>{lang === 'es' ? 'Contacto Directo por WhatsApp:' : 'Direct WhatsApp Inquiries:'}</strong>
                 <span className="block pl-5 text-stone-400 mt-1">
                   {lang === 'es'
-                    ? 'Si el visitante opta por abrir el enlace de WhatsApp, los datos de cotización prellenados se envían bajo el control voluntario del usuario desde su propia aplicación de WhatsApp a la línea del Chef.'
-                    : 'When visitors click WhatsApp links, prefilled quote details are dispatched solely at the visitor\'s election from their own WhatsApp client.'}
+                    ? 'Al hacer clic en los enlaces de WhatsApp, la información prellenada de la cotización se transfiere bajo control exclusivo del usuario desde su propia aplicación móvil o de escritorio.'
+                    : 'When visitors choose to connect via WhatsApp, inquiry details are transferred solely under the user\'s discretion from their personal WhatsApp application.'}
                 </span>
               </li>
               <li>
-                <strong>{lang === 'es' ? 'Borradores en el Navegador (LocalStorage):' : 'Browser Storage Drafts (LocalStorage):'}</strong>
+                <strong>{lang === 'es' ? 'Borrador Técnico en el Navegador (LocalStorage):' : 'Local Storage Temporary Drafts:'}</strong>
                 <span className="block pl-5 text-stone-400 mt-1">
                   {lang === 'es'
-                    ? 'Para conveniencia del usuario, los formularios almacenan temporalmente un borrador en el almacenamiento local del navegador (`chef4you_quote_modal_draft`, `chef4you_reservation_draft_v1`). Este borrador no sale del dispositivo hasta que se pulsa el botón de envío y se elimina automáticamente al finalizar.'
-                    : 'Form inputs are saved locally in the browser (`chef4you_quote_modal_draft`, `chef4you_reservation_draft_v1`) to prevent data loss. Draft data stays on the user device and is cleared upon successful transmission.'}
+                    ? 'Para evitar pérdidas de datos en caso de desconexión o recarga accidental, los formularios guardan temporalmente los campos en el almacenamiento local del dispositivo del usuario. Dicha información nunca se transmite a servidores externos hasta que se pulsa voluntariamente el botón de envío y se borra al completarse la solicitud.'
+                    : 'To prevent input loss upon accidental refresh, form fields are temporarily held in browser LocalStorage. This data remains on the user\'s device and is deleted upon successful submission.'}
                 </span>
               </li>
             </ul>
@@ -159,148 +137,136 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
         <section className="space-y-4">
           <h2 className="font-serif text-2xl text-white flex items-center gap-2.5">
             <Globe className="w-5 h-5 text-[#c5a059]" />
-            <span>{lang === 'es' ? '3. Finalidades del Tratamiento' : '3. Purposes of Processing'}</span>
+            <span>{lang === 'es' ? '3. Finalidades del Tratamiento' : '3. Purposes of Data Processing'}</span>
           </h2>
           <div className="rounded-2xl bg-[#141312] border border-stone-800 p-6 space-y-4 text-sm text-stone-300 leading-relaxed">
             <div>
-              <h3 className="font-semibold text-white mb-2">{lang === 'es' ? 'Finalidades Primarias (necesarias para el servicio):' : 'Primary Purposes (Service Fulfillment):'}</h3>
+              <h3 className="font-semibold text-white mb-2">{lang === 'es' ? 'Finalidades Primarias (necesarias para el servicio):' : 'Primary Purposes (Service Delivery):'}</h3>
               <ul className="list-disc list-inside space-y-1.5 text-stone-300 pl-2">
-                <li>{lang === 'es' ? 'Elaborar y remitir propuestas y cotizaciones personalizadas de chef privado.' : 'Prepare and deliver bespoke private dining proposals and quotations.'}</li>
-                <li>{lang === 'es' ? 'Gestionar la disponibilidad de fechas y la coordinación logística de servicios en villas o residencias.' : 'Coordinate schedule availability and on-site villa logistics.'}</li>
-                <li>{lang === 'es' ? 'Atender requerimientos dietéticos, intolerancias y alergias para la seguridad alimentaria de los comensales.' : 'Accommodate dietary restrictions, allergies, and ingredient preferences.'}</li>
-                <li>{lang === 'es' ? 'Proteger los formularios contra envíos masivos, spam y abuso mediante análisis de seguridad (reCAPTCHA Enterprise).' : 'Protect forms and APIs from spam, automated abuse, and denial-of-service via reCAPTCHA Enterprise.'}</li>
+                <li>{lang === 'es' ? 'Elaborar y remitir propuestas y presupuestos gastronómicos personalizados.' : 'Prepare and deliver personalized culinary proposals and bespoke quotes.'}</li>
+                <li>{lang === 'es' ? 'Coordinar la agenda de fechas y la logística operativa en residencias, villas o condominios privados.' : 'Coordinate schedule availability and on-site logistics at private villas or residences.'}</li>
+                <li>{lang === 'es' ? 'Atender requerimientos dietéticos, intolerancias y alergias para garantizar la seguridad alimentaria de los comensales.' : 'Accommodate food allergies, medical intolerances, and dietary preferences for guest safety.'}</li>
+                <li>{lang === 'es' ? 'Proteger los formularios contra ataques automatizados, spam y fraude mediante reCAPTCHA Enterprise.' : 'Protect web forms against bot abuse, spam submissions, and denial-of-service via reCAPTCHA Enterprise.'}</li>
               </ul>
             </div>
 
             <div className="pt-2 border-t border-stone-800">
-              <h3 className="font-semibold text-white mb-2">{lang === 'es' ? 'Finalidades Secundarias (analítica y mejora):' : 'Secondary Purposes (Analytics & Performance):'}</h3>
+              <h3 className="font-semibold text-white mb-2">{lang === 'es' ? 'Finalidades Secundarias (estadística y mejora continua):' : 'Secondary Purposes (Analytics & Improvement):'}</h3>
               <ul className="list-disc list-inside space-y-1.5 text-stone-300 pl-2">
-                <li>{lang === 'es' ? 'Análisis estadístico de visitas, rutas más consultadas y rendimiento publicitario (Google Analytics 4 y Google Ads).' : 'Aggregated measurement of page engagement, traffic trends, and ad conversion efficacy (Google Analytics 4 and Google Ads).'}</li>
+                <li>{lang === 'es' ? 'Medición estadística y rendimiento de tráfico agregado (Google Analytics 4).' : 'Aggregated measurement of site performance, page engagement, and technical uptime (Google Analytics 4).'}</li>
               </ul>
             </div>
           </div>
         </section>
 
-        {/* Section 4: Third-Party Services */}
+        {/* Section 4: Third-Party Service Providers */}
         <section className="space-y-4">
           <h2 className="font-serif text-2xl text-white flex items-center gap-2.5">
             <ExternalLink className="w-5 h-5 text-[#c5a059]" />
-            <span>{lang === 'es' ? '4. Proveedores y Servicios de Terceros' : '4. Third-Party Service Providers'}</span>
+            <span>{lang === 'es' ? '4. Proveedores e Infraestructura de Terceros' : '4. Third-Party Service Providers'}</span>
           </h2>
-          <div className="rounded-2xl bg-[#141312] border border-stone-800 p-6 space-y-5 text-sm text-stone-300 leading-relaxed">
+          <div className="rounded-2xl bg-[#141312] border border-stone-800 p-6 space-y-4 text-sm text-stone-300 leading-relaxed">
             <p>
               {lang === 'es'
-                ? 'De acuerdo con la auditoría técnica del sitio, se distingue entre servicios activos en operación y componentes integrados en código cuya activación depende de configuraciones específicas:'
-                : 'Based on strict architectural audit, active infrastructure providers are distinguished from code-level integrations:'}
+                ? 'Para garantizar la estabilidad técnica, seguridad y despacho de solicitudes, el sitio web utiliza los siguientes servicios tecnológicos especializados:'
+                : 'To ensure technical uptime, cryptographic security, and prompt request delivery, the site utilizes the following specialized service providers:'}
             </p>
-
-            <div className="space-y-3">
-              <h3 className="font-semibold text-emerald-400 text-xs uppercase tracking-wider">
-                {lang === 'es' ? 'A. Servicios Activos en Producción:' : 'A. Active Production Providers:'}
-              </h3>
-              <ul className="list-disc list-inside space-y-2 text-stone-300 pl-2">
-                <li>
-                  <strong>Google Cloud / Firebase Hosting &amp; Functions (Google LLC):</strong>{' '}
-                  {lang === 'es' ? 'Infraestructura de entrega de contenido web y backend seguro serverless en us-central1.' : 'Content delivery hosting and serverless backend functions in us-central1.'}
-                </li>
-                <li>
-                  <strong>Formspree (Formspree, Inc.):</strong>{' '}
-                  {lang === 'es' ? 'Pasarela activa de recepción y despacho de solicitudes de cotización hacia el correo del Chef.' : 'Operational form transmission gateway forwarding inquiries to the Chef\'s mailbox.'}
-                </li>
-                <li>
-                  <strong>Google reCAPTCHA Enterprise (Google LLC):</strong>{' '}
-                  {lang === 'es' ? 'Evaluación de riesgo criptográfica para prevenir bots en formularios y chat.' : 'Cryptographic risk assessment preventing automated spam and abuse.'}
-                </li>
-                <li>
-                  <strong>Google Analytics 4 &amp; Google Tag Manager (Google LLC):</strong>{' '}
-                  {lang === 'es' ? 'Medición de métricas de uso (identificadores G-X4T0SBCQVF y GTM-TRBSB34P).' : 'Usage metrics measurement (IDs G-X4T0SBCQVF and GTM-TRBSB34P).'}
-                </li>
-                <li>
-                  <strong>Google Gemini API (Google LLC):</strong>{' '}
-                  {lang === 'es' ? 'Modelo de lenguaje utilizado para generar respuestas del asistente Franko AI.' : 'Generative AI model powering the interactive Franko AI culinary assistant.'}
-                </li>
-                <li>
-                  <strong>SMS Reminder (smsreminder.co):</strong>{' '}
-                  {lang === 'es' ? 'Herramienta externa de reserva de citas y videollamadas en ReservationPage.' : 'Third-party booking widget embedded on the reservation page.'}
-                </li>
-                <li>
-                  <strong>WhatsApp (Meta Platforms, Inc.):</strong>{' '}
-                  {lang === 'es' ? 'Canal de mensajería directa voluntaria mediante enlaces wa.me.' : 'Direct voluntary communication channel via wa.me links.'}
-                </li>
-              </ul>
-            </div>
-
-            <div className="space-y-3 pt-3 border-t border-stone-800">
-              <h3 className="font-semibold text-stone-400 text-xs uppercase tracking-wider">
-                {lang === 'es' ? 'B. Integraciones Presentes Solo en Código (Inactivas sin credenciales):' : 'B. Code-Only Integraciones (Inactive without credentials):'}
-              </h3>
-              <ul className="list-disc list-inside space-y-1.5 text-stone-400 pl-2">
-                <li>
-                  <strong>Clerk (@clerk/react):</strong>{' '}
-                  {lang === 'es' ? 'Código de autenticación preparado pero inactivo sin clave VITE_CLERK_PUBLISHABLE_KEY.' : 'Authentication scaffold present in code but dormant without publishable key.'}
-                </li>
-                <li>
-                  <strong>Twilio &amp; SendGrid:</strong>{' '}
-                  {lang === 'es' ? 'Librerías de mensajería en Cloud Functions, no activas en el flujo estándar de cliente.' : 'Notification packages in Functions package.json, dormant without configured secrets.'}
-                </li>
-                <li>
-                  <strong>Google Calendar API:</strong>{' '}
-                  {lang === 'es' ? 'Integración en funciones para agenda, inactiva sin credencial de cuenta de servicio.' : 'Calendar sync code in functions, inactive without service account credentials.'}
-                </li>
-              </ul>
-            </div>
+            <ul className="list-disc list-inside space-y-2 text-stone-300 pl-2">
+              <li>
+                <strong>Google Cloud / Firebase (Google LLC):</strong>{' '}
+                {lang === 'es' ? 'Infraestructura de alojamiento web seguro, entrega de contenido (CDN) y backend serverless en us-central1.' : 'Secure hosting infrastructure, global content delivery network (CDN), and serverless cloud functions in us-central1.'}
+              </li>
+              <li>
+                <strong>Formspree (Formspree, Inc.):</strong>{' '}
+                {lang === 'es' ? 'Pasarela de despacho de formularios que retransmite las solicitudes de cotización directamente al correo electrónico de Chef Franko.' : 'Operational transmission gateway forwarding contact and quote submissions directly to Chef Franko\'s inbox.'}
+              </li>
+              <li>
+                <strong>Google reCAPTCHA Enterprise (Google LLC):</strong>{' '}
+                {lang === 'es' ? 'Evaluación de seguridad criptográfica basada en puntuación (SCORE) para prevenir ataques sin almacenar contraseñas ni perfiles.' : 'Cryptographic score-based risk assessment shielding forms and chat APIs against automated bots.'}
+              </li>
+              <li>
+                <strong>Google Analytics 4 &amp; Google Tag Manager (Google LLC):</strong>{' '}
+                {lang === 'es' ? 'Métricas agregadas y anónimas de navegación (G-X4T0SBCQVF).' : 'Aggregated, anonymous usage analytics (G-X4T0SBCQVF).'}
+              </li>
+              <li>
+                <strong>Google Gemini (Google LLC):</strong>{' '}
+                {lang === 'es' ? 'Modelo de inteligencia artificial que asiste en la atención gastronómica interactiva de Franko AI.' : 'Generative artificial intelligence model powering the Franko AI culinary assistant.'}
+              </li>
+              <li>
+                <strong>WhatsApp (Meta Platforms, Inc.):</strong>{' '}
+                {lang === 'es' ? 'Canal de mensajería directa elegido voluntariamente por el usuario.' : 'Direct voluntary communication channel chosen by the user.'}
+              </li>
+            </ul>
           </div>
         </section>
 
-        {/* Section 5: ARCO Rights & Contact */}
+        {/* Section 5: Payment Processing & Financial Inquiries */}
+        <section className="space-y-4">
+          <h2 className="font-serif text-2xl text-white flex items-center gap-2.5">
+            <CreditCard className="w-5 h-5 text-[#c5a059]" />
+            <span>{lang === 'es' ? '5. Métodos de Pago y Operaciones Financieras' : '5. Payment Methods & Financial Processing'}</span>
+          </h2>
+          <div className="rounded-2xl bg-[#141312] border border-stone-800 p-6 space-y-3 text-sm text-stone-300 leading-relaxed">
+            <p>
+              {lang === 'es'
+                ? 'En la operación actual de Chef4You by Franko, las cotizaciones, depósitos de anticipo para reserva de fecha y liquidaciones de servicios se gestionan y convienen de forma directa y personalizada entre el comensal y el Chef (mediante transferencias interbancarias, efectivo o medios acordados puntualmente).'
+                : 'In current Chef4You by Franko operations, quote deposits, reservation retainers, and final settlements are agreed upon and handled directly and personally between client and Chef (via bank wire transfers, cash on-site, or custom-arranged methods).'}
+            </p>
+            <p className="text-stone-400">
+              {lang === 'es'
+                ? 'Plataformas o pasarelas automáticas de pago en línea (como PayPal u otras) se encuentran únicamente previstas como alternativas futuras de integración técnica. Actualmente este sitio web no recopila, procesa ni almacena números de tarjetas de crédito o credenciales bancarias en sus servidores.'
+                : 'Online automated payment gateways (such as PayPal or merchant processors) are currently contemplated solely as potential future technical integrations. This website does not directly capture, process, or store credit card numbers or financial account credentials.'}
+            </p>
+          </div>
+        </section>
+
+        {/* Section 6: Data Retention Timeline */}
+        <section className="space-y-4">
+          <h2 className="font-serif text-2xl text-white flex items-center gap-2.5">
+            <Clock className="w-5 h-5 text-[#c5a059]" />
+            <span>{lang === 'es' ? '6. Plazos de Conservación de Datos' : '6. Data Retention Schedule'}</span>
+          </h2>
+          <div className="rounded-2xl bg-[#141312] border border-stone-800 p-6 space-y-3 text-sm text-stone-300 leading-relaxed">
+            <ul className="list-disc list-inside space-y-2 text-stone-300 pl-2">
+              <li>
+                <strong>{lang === 'es' ? 'Cotizaciones y Consultas no formalizadas:' : 'Uncontracted Inquiries & Quotes:'}</strong>{' '}
+                {lang === 'es'
+                  ? 'Se conservan por un plazo máximo de doce (12) meses a fin de dar seguimiento a la disponibilidad por temporadas y atender consultas posteriores del comensal. Transcurrido dicho periodo, los registros son depurados.'
+                  : 'Retained for a maximum period of twelve (12) months for seasonal availability follow-ups and repeat inquiries. Thereafter, records are safely purged.'}
+              </li>
+              <li>
+                <strong>{lang === 'es' ? 'Servicios y Eventos efectivamente contratados:' : 'Contracted Services & Private Events:'}</strong>{' '}
+                {lang === 'es'
+                  ? 'La información relativa al servicio, menús servidos y detalles de contratación se conserva por un plazo de cinco (5) años a efectos de control operativo, historial de preferencias para futuras visitas y cumplimiento de disposiciones comerciales y fiscales aplicables en México.'
+                  : 'Service specifications, historical menu preferences, and billing records are kept for five (5) years for customer service continuity, operational audits, and applicable commercial/fiscal record-keeping in Mexico.'}
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        {/* Section 7: ARCO Rights & Contact */}
         <section className="space-y-4">
           <h2 className="font-serif text-2xl text-white flex items-center gap-2.5">
             <Mail className="w-5 h-5 text-[#c5a059]" />
-            <span>{lang === 'es' ? '5. Ejercicio de Derechos ARCO' : '5. Exercise of Privacy Rights (ARCO)'}</span>
+            <span>{lang === 'es' ? '7. Ejercicio de Derechos ARCO' : '7. Exercise of ARCO Privacy Rights'}</span>
           </h2>
           <div className="rounded-2xl bg-[#141312] border border-stone-800 p-6 space-y-4 text-sm text-stone-300 leading-relaxed">
             <p>
               {lang === 'es'
-                ? 'De conformidad con la legislación aplicable en materia de protección de datos personales, los titulares tienen derecho a Acceder, Rectificar, Cancelar u Oponerse al tratamiento de sus datos personales (Derechos ARCO).'
-                : 'In accordance with applicable personal data protection laws, individuals maintain the right to Access, Rectify, Cancel, or Oppose the processing of their personal data (ARCO Rights).'}
+                ? 'Conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) de los Estados Unidos Mexicanos, usted tiene derecho a Acceder a sus datos personales, solicitar su Rectificación, Cancelación u Oponerse a su tratamiento (Derechos ARCO).'
+                : 'Pursuant to Mexico\'s Federal Law on Protection of Personal Data Held by Private Parties (LFPDPPP), you have the right to Access, Rectify, Cancel, or Oppose the processing of your personal information (ARCO Rights).'}
             </p>
             <p>
               {lang === 'es'
-                ? 'Para cualquier consulta o solicitud sobre sus datos personales, puede comunicarse al canal provisional:'
-                : 'For privacy inquiries or requests, visitors may contact:'}
+                ? 'Para ejercer cualquiera de estos derechos, basta enviar un correo electrónico con su nombre completo, número de teléfono y la descripción de su solicitud a:'
+                : 'To exercise any of these privacy rights, please submit an email request including your full name, phone number, and a description of your request to:'}
             </p>
-            {contactConfig.email ? (
-              <p className="font-mono text-[#d8b96d] text-base">{contactConfig.email}</p>
-            ) : (
-              <p className="text-amber-300 text-xs font-mono">[{lang === 'es' ? 'Correo ARCO pendiente de confirmación por el propietario - Atención provisional por WhatsApp' : 'ARCO email pending owner confirmation - Temporary contact via WhatsApp'}]</p>
-            )}
-
-            <div className="p-3.5 rounded-xl bg-stone-900/80 border border-amber-800/40 text-amber-200/90 text-xs space-y-1">
-              <p className="font-semibold">{lang === 'es' ? '[Pendiente de confirmación por el propietario]:' : '[Pending owner confirmation]:'}</p>
-              <ul className="list-disc list-inside space-y-0.5 text-stone-300">
-                <li>{lang === 'es' ? 'Plazo formal de respuesta a solicitudes ARCO (ejemplo legal común: 20 días hábiles).' : 'Statutory response timeframe for privacy requests (typically 20 business days under Mexican LFPDPPP).'}</li>
-                <li>{lang === 'es' ? 'Requisitos documentales para acreditar la identidad del titular.' : 'Identity verification document requirements.'}</li>
-                <li>{lang === 'es' ? 'Mecanismo oficial de revocación del consentimiento para finalidades secundarias.' : 'Opt-out mechanism for secondary processing purposes.'}</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* Section 6: Retention & International Transfers */}
-        <section className="space-y-4">
-          <h2 className="font-serif text-2xl text-white flex items-center gap-2.5">
-            <Lock className="w-5 h-5 text-[#c5a059]" />
-            <span>{lang === 'es' ? '6. Conservación y Transferencias' : '6. Data Retention & Transfers'}</span>
-          </h2>
-          <div className="rounded-2xl bg-[#141312] border border-stone-800 p-6 space-y-4 text-sm text-stone-300 leading-relaxed">
-            <div className="p-3.5 rounded-xl bg-stone-900/80 border border-amber-800/40 text-amber-200/90 text-xs space-y-1">
-              <p className="font-semibold">{lang === 'es' ? '[Pendiente de confirmación por el propietario]:' : '[Pending owner confirmation]:'}</p>
-              <ul className="list-disc list-inside space-y-0.5 text-stone-300">
-                <li>{lang === 'es' ? 'Plazo de conservación de cotizaciones no concretadas (ej. 6 a 12 meses) y de reservas confirmadas (ej. 5 años por obligaciones fiscales).' : 'Data retention retention timeline for uncompleted quotes and completed culinary contracts.'}</li>
-                <li>{lang === 'es' ? 'Declaración formal de transferencias internacionales de datos a servidores en EE. UU. (Google, Formspree, Meta).' : 'Formal disclosure of international data transfers to cloud service providers located in the United States.'}</li>
-                <li>{lang === 'es' ? 'Garantías contractuales y cláusulas de confidencialidad celebradas con el personal y proveedores auxiliares.' : 'Staff and contractor data confidentiality agreements.'}</li>
-              </ul>
-            </div>
+            <p className="font-mono text-[#d8b96d] text-base font-semibold">frankocheff99@gmail.com</p>
+            <p className="text-stone-400 text-xs">
+              {lang === 'es'
+                ? 'Recibirá respuesta formal a su solicitud en un plazo máximo de veinte (20) días hábiles.'
+                : 'Formal response to verified privacy requests will be delivered within twenty (20) business days.'}
+            </p>
           </div>
         </section>
 
@@ -313,23 +279,12 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
           >
             {lang === 'es' ? 'Volver a la página principal' : 'Return to main page'}
           </button>
-          {contactConfig.email ? (
-            <a
-              href={"mailto:" + contactConfig.email}
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#c5a059] to-[#9e7c33] text-stone-950 font-bold text-sm shadow-md hover:brightness-110 transition-all text-center"
-            >
-              {lang === 'es' ? 'Contactar por Privacidad' : 'Privacy Inquiries'}
-            </a>
-          ) : (
-            <a
-              href={contactConfig.whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#c5a059] to-[#9e7c33] text-stone-950 font-bold text-sm shadow-md hover:brightness-110 transition-all text-center"
-            >
-              {lang === 'es' ? 'Contacto Privacidad (WhatsApp)' : 'Privacy Inquiries (WhatsApp)'}
-            </a>
-          )}
+          <a
+            href="mailto:frankocheff99@gmail.com?subject=Consulta%20de%20Privacidad%20-%20Chef4You"
+            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#c5a059] to-[#9e7c33] text-stone-950 font-bold text-sm shadow-md hover:brightness-110 transition-all text-center"
+          >
+            {lang === 'es' ? 'Contactar por Privacidad' : 'Privacy Inquiries'}
+          </a>
         </div>
       </div>
     </div>

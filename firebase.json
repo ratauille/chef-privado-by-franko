@@ -107,7 +107,7 @@
         ]
       },
       {
-        "regex": "^/(menu|galeria|experiencias|chef-franko|reservar)/?$",
+        "regex": "^/(menu|galeria|experiencias|chef-franko|reservar|privacy)/?$",
         "headers": [
           {
             "key": "Cache-Control",
@@ -165,6 +165,10 @@
       {
         "source": "/reservar",
         "destination": "/reservar/index.html"
+      },
+      {
+        "source": "/privacy",
+        "destination": "/privacy/index.html"
       }
     ]
   },

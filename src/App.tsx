@@ -24,6 +24,7 @@ const Footer = lazy(() => import('./components/Footer').then(m => ({ default: m.
 const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const ArtGallery = lazy(() => import('./components/ArtGallery').then(m => ({ default: m.ArtGallery })));
 const ReservationPage = lazy(() => import('./components/ReservationPage').then(m => ({ default: m.ReservationPage })));
+const PrivacyPage = lazy(() => import('./components/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 const QuoteModal = lazy(() => import('./components/QuoteModal').then(m => ({ default: m.QuoteModal })));
 const FrankoAIChatModal = lazy(() => import('./components/FrankoAIChatModal').then(m => ({ default: m.FrankoAIChatModal })));
 
@@ -260,6 +261,30 @@ function AppContent({ initialPath }: AppProps) {
         <main id="main-content" tabIndex={-1} className="outline-none">
           <Suspense fallback={<LoadingSpinner />}>
             <ReservationPage />
+          </Suspense>
+        </main>
+        <Suspense fallback={null}>
+          <Footer onNavigate={navigateTo} />
+        </Suspense>
+        {globalOverlays}
+      </div>
+    );
+  }
+
+  // Route: /privacy
+  if (pathname === '/privacy') {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
+        {skipLink}
+        <Navbar
+          currentPath={pathname}
+          onNavigate={navigateTo}
+          onOpenQuote={() => setQuoteOpen(true)}
+          onOpenAI={() => setAiChatOpen(true)}
+        />
+        <main id="main-content" tabIndex={-1} className="outline-none">
+          <Suspense fallback={<LoadingSpinner />}>
+            <PrivacyPage onNavigate={navigateTo} onOpenQuote={() => setQuoteOpen(true)} />
           </Suspense>
         </main>
         <Suspense fallback={null}>
