@@ -68,27 +68,35 @@ export async function ensureRecaptchaToken(action: 'LEAD' | 'RESERVATION' | 'CHA
     await preloadRecaptchaEnterprise();
     let enterprise = (window as RecaptchaWindow).grecaptcha?.enterprise;
     if (!enterprise) {
-      for (let i = 0; i < 15; i++) {
-        await new Promise(r => setTimeout(r, 100));
+      for (let i = 0; i < 35; i++) {
+        await new Promise(r => setTimeout(r, 150));
         enterprise = (window as RecaptchaWindow).grecaptcha?.enterprise;
         if (enterprise) break;
       }
     }
     if (!enterprise) {
+      console.warn(`[reCAPTCHA] enterprise object not found after waiting for ${action}`);
       return '';
     }
 
-    if (enterprise.ready) {
-      await Promise.race([
-        new Promise<void>(resolve => enterprise.ready?.(resolve)),
-        new Promise<void>(resolve => setTimeout(resolve, 2500)),
-      ]);
-    }
+    const token = await new Promise<string>((resolve) => {
+      const timer = setTimeout(() => {
+        console.warn(`[reCAPTCHA] Timeout waiting for execution of ${action}`);
+        resolve('');
+      }, 7000);
 
-    const token = await Promise.race([
-      enterprise.execute(RECAPTCHA_SITE_KEY, { action }),
-      new Promise<string>(resolve => setTimeout(() => resolve(''), 3500)),
-    ]);
+      enterprise.ready(async () => {
+        try {
+          const t = await enterprise.execute(RECAPTCHA_SITE_KEY, { action });
+          clearTimeout(timer);
+          resolve(t || '');
+        } catch (e) {
+          clearTimeout(timer);
+          console.warn(`[reCAPTCHA] Error executing action ${action}:`, e);
+          resolve('');
+        }
+      });
+    });
 
     return token || '';
   } catch (err) {
