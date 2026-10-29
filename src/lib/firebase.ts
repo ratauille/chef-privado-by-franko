@@ -27,7 +27,7 @@ let appCheckInstance: AppCheck | null = null;
 // App Check singleton initialization wrapper
 export const initAppCheck = (recaptchaSiteKey?: string) => {
   if (appCheckInstance) return appCheckInstance;
-  const siteKey = recaptchaSiteKey || import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n';
+  const siteKey = recaptchaSiteKey || import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6Leo8bYtAAAAAAUiuv6Fuyf2OePRM1KQodNFBvGC';
   
   if (import.meta.env.DEV || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
     // Enable App Check Debug Token in browser console for local development

@@ -22,7 +22,7 @@ interface RecaptchaWindow extends Window {
 }
 
 const RECAPTCHA_SITE_KEY =
-  import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n';
+  import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6Leo8bYtAAAAAAUiuv6Fuyf2OePRM1KQodNFBvGC';
 
 export const FORMSPREE_DEFAULT_ENDPOINT = 'https://formspree.io/f/mwlprdwr';
 export const API_LEAD_DEFAULT_ENDPOINT = '/api/lead';
@@ -66,7 +66,14 @@ export function preloadRecaptchaEnterprise(): Promise<void> {
 export async function ensureRecaptchaToken(action: 'LEAD' | 'RESERVATION' | 'CHAT'): Promise<string> {
   try {
     await preloadRecaptchaEnterprise();
-    const enterprise = (window as RecaptchaWindow).grecaptcha?.enterprise;
+    let enterprise = (window as RecaptchaWindow).grecaptcha?.enterprise;
+    if (!enterprise) {
+      for (let i = 0; i < 15; i++) {
+        await new Promise(r => setTimeout(r, 100));
+        enterprise = (window as RecaptchaWindow).grecaptcha?.enterprise;
+        if (enterprise) break;
+      }
+    }
     if (!enterprise) {
       return '';
     }

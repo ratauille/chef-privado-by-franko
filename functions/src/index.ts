@@ -12,7 +12,7 @@ import * as crypto from 'crypto';
 admin.initializeApp();
 const db = getFirestore();
 const recaptchaClient = new recaptchaEnterprise.RecaptchaEnterpriseServiceClient();
-const recaptchaSiteKey = process.env.RECAPTCHA_SITE_KEY || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n';
+const recaptchaSiteKey = process.env.RECAPTCHA_SITE_KEY || '6Leo8bYtAAAAAAUiuv6Fuyf2OePRM1KQodNFBvGC';
 const recaptchaProjectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || 'chef-privado';
 
 /**
@@ -30,7 +30,7 @@ async function verifyRecaptchaToken(token: string, expectedAction: string): Prom
     return false;
   }
 
-  const siteKey = recaptchaSiteKey || '6LcRcbUtAAAAALu9BaCB9Dagi6ejHwQm0IqEOu1n';
+  const siteKey = recaptchaSiteKey || '6Leo8bYtAAAAAAUiuv6Fuyf2OePRM1KQodNFBvGC';
 
   try {
     const [assessment] = await recaptchaClient.createAssessment({
@@ -57,6 +57,13 @@ async function verifyRecaptchaToken(token: string, expectedAction: string): Prom
     // Exigir estricta presencia e igualdad exacta de la acción
     if (!tokenProperties.action || tokenProperties.action !== expectedAction) {
       functions.logger.warn(`[reCAPTCHA] Acción no coincide o está ausente. Esperada: "${expectedAction}", recibida: "${tokenProperties?.action}"`);
+      return false;
+    }
+
+    // Validar hostname autorizado para evitar suplantación de origen
+    const allowedHostnames = ['chef4youbyfranko.com', 'chef-privado.web.app', 'chef-privado.firebaseapp.com'];
+    if (tokenProperties.hostname && !allowedHostnames.includes(tokenProperties.hostname)) {
+      functions.logger.warn(`[reCAPTCHA] Hostname no autorizado: ${tokenProperties.hostname}`);
       return false;
     }
 
