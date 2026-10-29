@@ -49,7 +49,7 @@ const FloatingFrankoAIButton: React.FC<{ onClick: () => void; hidden?: boolean }
       aria-label={lang === 'en' ? 'Open Franko AI Assistant' : 'Abrir asistente Franko AI'}
       tabIndex={hidden ? -1 : 0}
       aria-hidden={hidden ? 'true' : undefined}
-      className={`fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#c5a059] via-[#d8b96d] to-[#9e7c33] px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-stone-950 shadow-[0_12px_32px_rgba(0,0,0,0.45)] transition-transform hover:scale-105 active:scale-95 ${
+      className={`fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] right-[calc(1.25rem+env(safe-area-inset-right,0px))] z-40 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#c5a059] via-[#d8b96d] to-[#9e7c33] px-4 py-3.5 text-xs font-bold uppercase tracking-wider text-stone-950 shadow-[0_12px_32px_rgba(0,0,0,0.45)] transition-transform hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c5a059] focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950 ${
         hidden ? 'invisible pointer-events-none opacity-0' : 'opacity-100'
       }`}
     >

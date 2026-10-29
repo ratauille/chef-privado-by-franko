@@ -41,3 +41,10 @@
   background-color: #10b981;
   box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
 }
+
+/* reCAPTCHA Enterprise badge placement respecting safe-area-inset */
+.grecaptcha-badge {
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+  right: calc(0px + env(safe-area-inset-right, 0px)) !important;
+  z-index: 30 !important;
+}

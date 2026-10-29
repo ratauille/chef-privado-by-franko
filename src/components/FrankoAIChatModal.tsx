@@ -182,9 +182,9 @@ export const FrankoAIChatModal: React.FC<FrankoAIChatModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="chat-modal-title"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md outline-none"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-2 sm:p-4 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] sm:pb-4 bg-black/85 backdrop-blur-md outline-none"
     >
-      <div className="bg-[#141312] border border-stone-800 rounded-3xl shadow-2xl max-w-lg w-full h-[85vh] max-h-[620px] flex flex-col overflow-hidden relative text-stone-100 animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-[#141312] border border-stone-800 rounded-3xl shadow-2xl max-w-lg w-full h-[80vh] max-h-[calc(100dvh-6rem-env(safe-area-inset-bottom,0px))] sm:max-h-[620px] flex flex-col overflow-hidden relative text-stone-100 animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="bg-[#0a0a0a] border-b border-stone-800 p-4 flex items-center justify-between gap-2">
           <div className="flex items-center gap-3">
