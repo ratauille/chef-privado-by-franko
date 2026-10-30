@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Menu, X, Calendar, Sparkles, Globe } from 'lucide-react';
 import { useLanguage } from '../lib/i18n';
+import { canonicalUrl, getLocalizedPath } from '../lib/pageMetadata';
 
 interface NavbarProps {
   onOpenQuote: () => void;
@@ -39,7 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="sticky top-0 z-40 bg-[#0a0a0a]/95 backdrop-blur-md border-b border-stone-800/80 text-stone-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
         {/* Logo */}
-        <a href="/" onClick={e => go(e, '/')} className="font-serif text-lg sm:text-2xl font-bold tracking-wide text-white group">
+        <a href={lang === 'es' ? '/es/' : '/'} onClick={e => go(e, '/')} className="font-serif text-lg sm:text-2xl font-bold tracking-wide text-white group">
           Chef 4 You{' '}
           <span className="text-[#c5a059] text-xs font-sans uppercase tracking-[0.2em] ml-1 transition-colors group-hover:text-[#d8b96d]">
             by Franko
@@ -51,7 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {links.map(({ path, label }) => (
             <a
               key={path}
-              href={path}
+              href={new URL(canonicalUrl(getLocalizedPath(path, lang))).pathname}
               onClick={e => go(e, path)}
               className={`transition-colors py-1 ${
                 currentPath === path
@@ -152,7 +153,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {links.map(({ path, label }) => (
             <a
               key={path}
-              href={path}
+              href={new URL(canonicalUrl(getLocalizedPath(path, lang))).pathname}
               onClick={e => go(e, path)}
               className={`block py-2 text-sm uppercase tracking-wider ${
                 currentPath === path ? 'text-[#d8b96d] font-bold' : 'text-stone-300'

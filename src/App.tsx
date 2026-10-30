@@ -4,7 +4,8 @@ import { Navbar } from './components/Navbar';
 import { HomePage } from './components/HomePage';
 import { MenuPage } from './components/MenuPage';
 import { LanguageProvider, useLanguage } from './lib/i18n';
-import { pageMetadata, siteUrl } from './lib/pageMetadata';
+import { canonicalUrl, getInitialLanguage, getLocalizedPath, getPageMetadata, getRoutePath, normalizePathname } from './lib/pageMetadata';
+import type { PageMetadata } from './lib/pageMetadata';
 
 function setMeta(attribute: 'name' | 'property', key: string, content: string) {
   if (typeof document === 'undefined') return;
@@ -27,6 +28,7 @@ const ReservationPage = lazy(() => import('./components/ReservationPage').then(m
 const PrivacyPage = lazy(() => import('./components/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 const QuoteModal = lazy(() => import('./components/QuoteModal').then(m => ({ default: m.QuoteModal })));
 const FrankoAIChatModal = lazy(() => import('./components/FrankoAIChatModal').then(m => ({ default: m.FrankoAIChatModal })));
+const LocationLandingPage = lazy(() => import('./components/LocationLandingPage').then(m => ({ default: m.LocationLandingPage })));
 
 const LoadingSpinner = () => (
   <div className="min-h-[60vh] flex flex-col items-center justify-center bg-[#0a0a0a] text-stone-400 space-y-4">
@@ -34,11 +36,6 @@ const LoadingSpinner = () => (
     <p className="text-xs font-mono uppercase tracking-widest text-stone-500">Chef 4 You by Franko...</p>
   </div>
 );
-
-const normalizePathname = (path: string) => {
-  const normalized = path.replace(/\/+$/, '');
-  return normalized || '/';
-};
 
 const FloatingFrankoAIButton: React.FC<{ onClick: () => void; hidden?: boolean }> = ({ onClick, hidden }) => {
   const { lang } = useLanguage();
@@ -68,9 +65,10 @@ function AppContent({ initialPath }: AppProps) {
   const { lang } = useLanguage();
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [aiChatOpen, setAiChatOpen] = useState(false);
-  const [pathname, setPathname] = useState(
+  const [currentPath, setPathname] = useState(
     normalizePathname(initialPath ?? (typeof window !== 'undefined' ? window.location.pathname : '/'))
   );
+  const pathname = getRoutePath(currentPath);
 
   useEffect(() => {
     const handlePopState = () => setPathname(normalizePathname(window.location.pathname));
@@ -80,13 +78,15 @@ function AppContent({ initialPath }: AppProps) {
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    const page = pageMetadata[pathname] ?? (pathname === '/' ? pageMetadata['/'] : {
+    const page: PageMetadata = getPageMetadata(currentPath) ?? {
       title: 'Página no disponible | Chef4You by Franko',
       description: 'La página solicitada no está disponible en Chef4You by Franko.',
+      lang: 'es-MX', route: pathname,
       noIndex: true,
-    });
+      alternates: undefined,
+    };
     if (!page) return;
-    const canonicalUrl = `${siteUrl}${pathname === '/' ? '/' : `${pathname}/`}`;
+    const pageUrl = canonicalUrl(currentPath);
 
     document.title = page.title;
     if (page.lang) document.documentElement.lang = page.lang;
@@ -94,7 +94,8 @@ function AppContent({ initialPath }: AppProps) {
     setMeta('name', 'robots', page.noIndex ? 'noindex, nofollow' : 'index, follow');
     setMeta('property', 'og:title', page.title);
     setMeta('property', 'og:description', page.description);
-    setMeta('property', 'og:url', canonicalUrl);
+    setMeta('property', 'og:url', pageUrl);
+    setMeta('property', 'og:locale', page.lang === 'en' ? 'en_US' : 'es_MX');
     setMeta('name', 'twitter:title', page.title);
     setMeta('name', 'twitter:description', page.description);
 
@@ -104,11 +105,36 @@ function AppContent({ initialPath }: AppProps) {
       canonical.rel = 'canonical';
       document.head.appendChild(canonical);
     }
-    canonical.href = canonicalUrl;
-  }, [pathname]);
+    canonical.href = pageUrl;
+    document.getElementById('local-service-schema')?.remove();
+    if (page.route.startsWith('/private-chef-')) {
+      const schema = document.createElement('script');
+      schema.id = 'local-service-schema';
+      schema.type = 'application/ld+json';
+      schema.textContent = JSON.stringify({
+        '@context': 'https://schema.org', '@type': 'Service',
+        name: page.title.split(' | ')[0], url: pageUrl, description: page.description,
+        serviceType: page.lang === 'en' ? 'Private chef service' : 'Servicio de chef privado',
+        areaServed: { '@type': 'Place', name: page.route.endsWith('punta-mita') ? 'Punta Mita' : 'Nuevo Nayarit' },
+        provider: { '@id': 'https://chef4youbyfranko.com/#business' },
+      });
+      document.head.appendChild(schema);
+    }
+
+    document.head.querySelectorAll('link[hreflang]').forEach(element => element.remove());
+    if (page.alternates) {
+      for (const [language, path] of Object.entries({ ...page.alternates, 'x-default': page.alternates.en })) {
+        const link = document.createElement('link');
+        link.rel = 'alternate';
+        link.hreflang = language;
+        link.href = canonicalUrl(path);
+        document.head.appendChild(link);
+      }
+    }
+  }, [currentPath]);
 
   const navigateTo = (path: string) => {
-    const normalizedPath = normalizePathname(path);
+    const normalizedPath = getLocalizedPath(normalizePathname(path), lang);
     window.history.pushState({}, '', normalizedPath);
     setPathname(normalizedPath);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -295,6 +321,22 @@ function AppContent({ initialPath }: AppProps) {
     );
   }
 
+  if (pathname === '/private-chef-punta-mita' || pathname === '/private-chef-nuevo-nayarit') {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans">
+        {skipLink}
+        <Navbar currentPath={currentPath} onNavigate={navigateTo} onOpenQuote={() => setQuoteOpen(true)} onOpenAI={() => setAiChatOpen(true)} />
+        <main id="main-content" tabIndex={-1} className="outline-none">
+          <Suspense fallback={<LoadingSpinner />}>
+            <LocationLandingPage locationKey={pathname === '/private-chef-punta-mita' ? 'puntaMita' : 'nuevoNayarit'} onOpenQuote={() => setQuoteOpen(true)} onNavigate={navigateTo} />
+          </Suspense>
+        </main>
+        <Suspense fallback={null}><Footer onNavigate={navigateTo} /></Suspense>
+        {globalOverlays}
+      </div>
+    );
+  }
+
   // Route 7: 404 / Página no disponible (evita que rutas no publicadas como /privacy muestren Inicio o el borrador)
   if (pathname !== '/') {
     return (
@@ -358,7 +400,7 @@ function AppContent({ initialPath }: AppProps) {
 
 export function App({ initialPath }: AppProps) {
   return (
-    <LanguageProvider>
+    <LanguageProvider initialLang={getInitialLanguage(initialPath ?? (typeof window !== 'undefined' ? window.location.pathname : '/'))}>
       <AppContent initialPath={initialPath} />
     </LanguageProvider>
   );

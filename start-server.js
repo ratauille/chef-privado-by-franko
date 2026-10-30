@@ -19,7 +19,7 @@ const getHtmlPath = () => {
 
 const getAdminPath = () => {
   // /admin is rendered by the React SPA and switches to AdminDashboard.
-  return getHtmlPath();
+  return path.join(distDir, 'admin', 'index.html');
 };
 
 const mimeTypes = {
@@ -27,6 +27,7 @@ const mimeTypes = {
   '.js': 'application/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json',
+  '.xml': 'application/xml; charset=utf-8',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
@@ -73,6 +74,17 @@ const server = http.createServer((req, res) => {
     }
   }
 
+  // Public routes must serve their own prerendered document, including metadata.
+  const routeFilePath = path.resolve(distDir, '.' + pathname, 'index.html');
+  if (routeFilePath.startsWith(distDir + path.sep) && fs.existsSync(routeFilePath) && fs.statSync(routeFilePath).isFile()) {
+    if (!pathname.endsWith('/')) {
+      res.writeHead(301, { Location: pathname + '/' + parsedUrl.search });
+      return res.end();
+    }
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    return fs.createReadStream(routeFilePath).pipe(res);
+  }
+
   // 3. Try serving static file from dist/ or rootDir
   let targetFilePath = path.join(distDir, pathname.startsWith('/') ? pathname.substring(1) : pathname);
   if (!fs.existsSync(targetFilePath) || !fs.statSync(targetFilePath).isFile()) {
@@ -92,14 +104,10 @@ const server = http.createServer((req, res) => {
     return res.end('Archivo no encontrado');
   }
 
-  // 5. SPA Fallback for HTML / page navigation routes (e.g. /, /experiencias, /cotizador)
-  const mainHtml = getHtmlPath();
-  if (fs.existsSync(mainHtml)) {
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    return fs.createReadStream(mainHtml).pipe(res);
-  }
-
-  res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+  // Unknown pages must not return the homepage as a successful response.
+  const notFound = path.join(distDir, '404.html');
+  res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+  if (fs.existsSync(notFound)) return fs.createReadStream(notFound).pipe(res);
   res.end('Página no encontrada');
 });
 
