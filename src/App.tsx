@@ -137,7 +137,7 @@ function AppContent({ initialPath }: AppProps) {
 
   const navigateTo = (path: string) => {
     const normalizedPath = getLocalizedPath(normalizePathname(path), lang);
-    window.history.pushState({}, '', normalizedPath);
+    window.history.pushState({}, '', new URL(canonicalUrl(normalizedPath)).pathname);
     setPathname(normalizedPath);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

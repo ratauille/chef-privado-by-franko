@@ -387,7 +387,7 @@ export const ArtGallery: React.FC<ArtGalleryProps> = ({ onOpenQuote, isFullView 
             </p>
             <div className="flex items-center gap-4">
               <a
-                href="/galeria"
+                href={lang === 'es' ? '/es/galeria/' : '/galeria/'}
                 className="px-5 py-3 rounded-xl bg-stone-900 border border-stone-700 text-stone-200 hover:text-white text-xs font-semibold transition-colors"
               >
                 {lang === 'es'
