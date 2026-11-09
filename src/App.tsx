@@ -36,7 +36,15 @@ const LoadingSpinner = () => (
 );
 
 const normalizePathname = (path: string) => {
-  const normalized = path.replace(/\/+$/, '');
+  let normalized = path.replace(/\/+$/, '');
+  // /es/* no es un conjunto de rutas separadas: el idioma es un toggle de
+  // UI sobre la misma URL (ver src/lib/i18n.tsx). Redirigir /es/* a su ruta
+  // canónica para que no devuelva 404. Las páginas de destino
+  // (/private-chef-punta-mita, /private-chef-nuevo-nayarit y sus /es/*)
+  // siguen sin ruta y devolverán 404: queda como siguiente paso.
+  if (normalized === '/es' || normalized.startsWith('/es/')) {
+    normalized = normalized.slice(3) || '/';
+  }
   return normalized || '/';
 };
 
@@ -78,6 +86,16 @@ function AppContent({ initialPath }: AppProps) {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Si se entró por /es/*, dejar la URL en su ruta canónica.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const normalized = normalizePathname(window.location.pathname);
+    if (window.location.pathname !== normalized) {
+      window.history.replaceState({}, '', normalized);
+      setPathname(normalized);
+    }
+  }, []);
+
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const page = pageMetadata[pathname] ?? (pathname === '/' ? pageMetadata['/'] : {
@@ -105,6 +123,16 @@ function AppContent({ initialPath }: AppProps) {
       document.head.appendChild(canonical);
     }
     canonical.href = canonicalUrl;
+
+    // Solo hreflang x-default: no hay páginas /es/* separadas.
+    let alternate = document.head.querySelector<HTMLLinkElement>('link[rel="alternate"][hreflang="x-default"]');
+    if (!alternate) {
+      alternate = document.createElement('link');
+      alternate.rel = 'alternate';
+      alternate.hreflang = 'x-default';
+      document.head.appendChild(alternate);
+    }
+    alternate.href = canonicalUrl;
   }, [pathname]);
 
   const navigateTo = (path: string) => {

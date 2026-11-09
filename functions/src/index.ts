@@ -390,7 +390,10 @@ export const onReservationCreated = functions.runWith({ secrets: ['GEMINI_API_KE
       // NOTIFICACIÓN WHATSAPP
       const whatsappApiUrl = process.env.WHATSAPP_API_URL;
       const whatsappToken = process.env.WHATSAPP_API_TOKEN;
-      const adminPhoneNumber = process.env.CHEF_WHATSAPP_NUMBER || process.env.ADMIN_WHATSAPP_NUMBER || '523221606843';
+      // WhatsApp canónico: 5213221606843 (ver src/lib/contactConfig.ts).
+      // SUPOSICIÓN: si ese número no es el que recibe los mensajes, cambiar
+      // solo el valor por defecto de esta línea.
+      const adminPhoneNumber = process.env.CHEF_WHATSAPP_NUMBER || process.env.ADMIN_WHATSAPP_NUMBER || '5213221606843';
 
       if (whatsappApiUrl && whatsappToken) {
         await axios.post(
