@@ -277,6 +277,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onOpenAI, onNav
             <p className="mt-3 font-serif text-base italic text-[#cfe8e4] sm:text-lg font-light tracking-wide">
               The art of living, served at your table.
             </p>
+            <p className="mt-4 text-sm font-semibold tracking-wide text-white/90">
+              {lang === 'es' ? 'Desde $970 MXN por persona' : 'From $970 MXN per person'}
+            </p>
             <div className="mt-9 flex flex-col gap-3.5 sm:flex-row sm:flex-wrap">
               <button
                 type="button"
@@ -325,7 +328,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onOpenAI, onNav
               {/* Facebook */}
               <a
                 id="hero-social-facebook-btn"
-                href="https://www.facebook.com/1847927896"
+                href="https://www.facebook.com/cheffrankosalgado"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={t.nav.followFacebook}

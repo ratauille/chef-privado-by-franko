@@ -95,7 +95,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
             </p>
             <p>
               <strong>{lang === 'es' ? 'Teléfono Directo y WhatsApp:' : 'Direct Phone & WhatsApp:'}</strong>{' '}
-              <a href="https://wa.me/523221606843" className="text-[#d8b96d] underline">+52 322 160 6843</a>
+              <a href="https://wa.me/5213221606843" className="text-[#d8b96d] underline">+52 322 160 6843</a>
             </p>
           </div>
         </section>

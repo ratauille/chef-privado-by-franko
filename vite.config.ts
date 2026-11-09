@@ -43,6 +43,13 @@ function staticRouteMetadata() {
           /<link rel="canonical" href="[^"]*" \/>/,
           () => `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`,
         );
+        // Solo hreflang x-default: no hay páginas /es/* separadas.
+        if (!html.includes('hreflang="x-default"')) {
+          html = html.replace(
+            /<link rel="canonical"[^>]*>/,
+            (match) => `${match}\n    <link rel="alternate" hreflang="x-default" href="${escapeHtml(canonicalUrl)}" />`,
+          );
+        }
 
         const routeDirectory = path.join(outputDirectory, route === '/' ? '' : route.slice(1));
         mkdirSync(routeDirectory, { recursive: true });

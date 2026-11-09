@@ -8,47 +8,59 @@ import { pathToFileURL } from 'node:url';
 const root = resolve(import.meta.dirname, '..');
 const distDir = join(root, 'dist');
 const serverDir = join(root, 'node_modules', `.chef4you-prerender-${process.pid}`);
+// Mapa de rutas del prerender. Mantener en sync con src/lib/pageMetadata.ts:
+// mismo title, description y lang por ruta. El prerender corre después de
+// `vite build` y es el que gana en el HTML servido.
 const routes = {
   '/': {
     title: 'Private Chef Puerto Vallarta & Punta Mita | Chef Franko',
     description:
       'Luxury private chef experiences, personalized tasting menus and villa dining in Puerto Vallarta, Punta Mita and Riviera Nayarit. Book Chef Franko.',
+    lang: 'en',
   },
   '/menu': {
     title: 'Menús y precios | Chef4You by Franko',
     description:
       'Explora diez menús de chef privado para grupos de 2 a 20 personas, con precios por persona en MXN. Servicio en Puerto Vallarta, Punta Mita y Nuevo Nayarit.',
+    lang: 'es',
   },
   '/galeria': {
     title: 'Private Chef Gallery | Chef 4 You by Franko',
     description:
       'Explore signature dishes, culinary technique and private villa dining captured by Chef Franko Salgado.',
+    lang: 'en',
   },
   '/experiencias': {
     title: 'Private Chef Experiences | Chef Franko',
     description:
       'Discover bespoke villa dinners, tasting menus, celebrations and chef-led experiences in Puerto Vallarta and Punta Mita.',
+    lang: 'en',
   },
   '/chef-franko': {
     title: 'Chef Franko Salgado | Private Chef',
     description:
       'Meet Chef Franko Salgado and discover refined private dining shaped around your guests, setting and celebration.',
+    lang: 'en',
   },
   '/privacy': {
     title: 'Aviso de Privacidad | Chef4You by Franko',
     description:
       'Aviso de privacidad y tratamiento de datos personales de Chef4You by Franko Salgado en Puerto Vallarta y Riviera Nayarit. Información sobre derechos ARCO y canales de atención.',
+    lang: 'es',
   },
   '/reservar': {
     title: 'Reserve a Private Chef Experience | Chef Franko',
     description:
       'Request a tailored private chef proposal for your date, guest count and villa location in Riviera Nayarit.',
+    lang: 'en',
   },
 };
 
 function replaceMeta(html, route, meta) {
   const canonical = `https://chef4youbyfranko.com${route === '/' ? '/' : `${route}/`}`;
+  const lang = meta.lang ?? 'en';
   const replacements = [
+    [/<html lang="[^"]*"/i, `<html lang="${lang}">`],
     [/<title>[^<]*<\/title>/i, `<title>${meta.title.replaceAll('&', '&amp;')}</title>`],
     [/<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i, `<meta name="description" content="${meta.description}" />`],
     [/<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i, `<link rel="canonical" href="${canonical}" />`],
@@ -64,7 +76,19 @@ function replaceMeta(html, route, meta) {
     ]);
   }
 
-  return replacements.reduce((result, [pattern, value]) => result.replace(pattern, value), html);
+  let result = replacements.reduce((acc, [pattern, value]) => acc.replace(pattern, value), html);
+
+  // Solo hreflang x-default: no hay páginas /es/* separadas, el idioma es
+  // un toggle de UI sobre la misma URL. No añadir hreflang en/es a URLs
+  // que no existen.
+  if (!result.includes('hreflang="x-default"')) {
+    result = result.replace(
+      /<link rel="canonical"[^>]*>/i,
+      (match) => `${match}\n    <link rel="alternate" hreflang="x-default" href="${canonical}" />`,
+    );
+  }
+
+  return result;
 }
 
 async function main() {
