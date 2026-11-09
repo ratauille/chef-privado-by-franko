@@ -1,3 +1,5 @@
+import { servicePages } from './servicePages';
+
 export const siteUrl = 'https://chef4youbyfranko.com';
 export type PageLanguage = 'en' | 'es';
 export interface PageMetadata {
@@ -26,6 +28,11 @@ const pages = [
     en: ['Private Chef Nuevo Nayarit & Nuevo Vallarta | Chef Franko', 'Private chef dinners for villas, condos and family stays in Nuevo Nayarit, also known as Nuevo Vallarta. Request menus and availability from Chef Franko.'],
     es: ['Chef privado en Nuevo Nayarit y Nuevo Vallarta | Chef Franko', 'Cenas con chef privado para villas, departamentos y estancias familiares en Nuevo Nayarit o Nuevo Vallarta. Consulta menús y disponibilidad con Chef Franko.'],
   },
+  ...servicePages.map(page => ({
+    route: page.route, esPath: page.esPath,
+    en: [page.en[0] + ' | Chef Franko', page.en[1]],
+    es: [page.es[0] + ' | Chef Franko', page.es[1]],
+  })),
   {
     route: '/experiencias', esPath: '/es/experiencias',
     en: ['Private Chef Experiences in Puerto Vallarta | Chef Franko', 'Explore private villa dinners, tasting menus and celebrations with Chef Franko in Puerto Vallarta, Punta Mita and Nuevo Nayarit.'],

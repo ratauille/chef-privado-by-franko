@@ -34,7 +34,7 @@ function replaceMeta(html, route, meta, canonicalUrl) {
     html = html.replace('</head>', `    ${links}\n  </head>`);
   }
   if (meta.route.startsWith('/private-chef-')) {
-    const area = meta.route.endsWith('punta-mita') ? 'Punta Mita' : 'Nuevo Nayarit';
+    const area = meta.route.endsWith('punta-mita') ? 'Punta Mita' : meta.route.endsWith('nuevo-nayarit') ? 'Nuevo Nayarit' : 'Puerto Vallarta';
     const service = { '@context': 'https://schema.org', '@type': 'Service',
       name: meta.title.split(' | ')[0], url: canonicalUrl(route), description: meta.description,
       serviceType: meta.lang === 'en' ? 'Private chef service' : 'Servicio de chef privado',

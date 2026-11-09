@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight, Calendar, MapPin, Menu, Star, X, Sparkles } from 'lucide-react';
 import { useLanguage } from '../lib/i18n';
+import { servicePages } from '../lib/servicePages';
 
 const WA_HREF =
   'https://wa.me/5213221606843?text=Hola%20Chef%20Franko%2C%20quisiera%20informaci%C3%B3n%20para%20una%20experiencia%20de%20chef%20privado.';
@@ -593,6 +594,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onOpenAI, onNav
             <p className="mt-3 max-w-md text-sm leading-6">{t.footer.description}</p>
           </div>
           <div className="flex flex-wrap gap-6 text-xs font-semibold uppercase tracking-[0.14em]">
+            {servicePages.map(page => {
+              const path = (lang === 'es' ? page.esPath : page.route) + '/';
+              return <a key={path} href={path} onClick={event => go(event, path)} className="hover:text-[#bfe0dc]">{page[lang][0]}</a>;
+            })}
             <a href={experiencesPath} onClick={event => go(event, experiencesPath)} className="hover:text-[#bfe0dc]">
               {t.nav.experiences}
             </a>

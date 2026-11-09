@@ -2,6 +2,7 @@ import React from 'react';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { contactConfig } from '../lib/contactConfig';
 import { useLanguage } from '../lib/i18n';
+import { servicePages } from '../lib/servicePages';
 import { canonicalUrl, getLocalizedPath } from '../lib/pageMetadata';
 
 interface FooterProps { onNavigate?: (path: string) => void; }
@@ -15,6 +16,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
     ['/experiencias', t.nav.experiences],
     ['/private-chef-punta-mita', t.nav.puntaMita],
     ['/private-chef-nuevo-nayarit', t.nav.nuevoNayarit],
+    ...servicePages.map(page => [page.route, page[lang][0]]),
     ['/menu', lang === 'en' ? 'Menus' : 'Menús'],
     ['/chef-franko', t.nav.chefFranko],
     ['/galeria', t.nav.gallery],

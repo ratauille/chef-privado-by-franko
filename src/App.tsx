@@ -5,6 +5,8 @@ import { HomePage } from './components/HomePage';
 import { MenuPage } from './components/MenuPage';
 import { LanguageProvider, useLanguage } from './lib/i18n';
 import { canonicalUrl, getInitialLanguage, getLocalizedPath, getPageMetadata, getRoutePath, normalizePathname } from './lib/pageMetadata';
+import { servicePages } from './lib/servicePages';
+import { ServiceLandingPage } from './components/ServiceLandingPage';
 import type { PageMetadata } from './lib/pageMetadata';
 
 function setMeta(attribute: 'name' | 'property', key: string, content: string) {
@@ -115,7 +117,7 @@ function AppContent({ initialPath }: AppProps) {
         '@context': 'https://schema.org', '@type': 'Service',
         name: page.title.split(' | ')[0], url: pageUrl, description: page.description,
         serviceType: page.lang === 'en' ? 'Private chef service' : 'Servicio de chef privado',
-        areaServed: { '@type': 'Place', name: page.route.endsWith('punta-mita') ? 'Punta Mita' : 'Nuevo Nayarit' },
+        areaServed: { '@type': 'Place', name: page.route.endsWith('punta-mita') ? 'Punta Mita' : page.route.endsWith('nuevo-nayarit') ? 'Nuevo Nayarit' : 'Puerto Vallarta' },
         provider: { '@id': 'https://chef4youbyfranko.com/#business' },
       });
       document.head.appendChild(schema);
@@ -321,14 +323,15 @@ function AppContent({ initialPath }: AppProps) {
     );
   }
 
-  if (pathname === '/private-chef-punta-mita' || pathname === '/private-chef-nuevo-nayarit') {
+  const servicePage = servicePages.find(page => page.route === pathname);
+  if (servicePage || pathname === '/private-chef-punta-mita' || pathname === '/private-chef-nuevo-nayarit') {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans">
         {skipLink}
         <Navbar currentPath={currentPath} onNavigate={navigateTo} onOpenQuote={() => setQuoteOpen(true)} onOpenAI={() => setAiChatOpen(true)} />
-        <main id="main-content" tabIndex={-1} className="outline-none">
+        <main id="main-content" tabIndex={-1} className={servicePage ? 'bg-[#faf8f3] outline-none' : 'outline-none'}>
           <Suspense fallback={<LoadingSpinner />}>
-            <LocationLandingPage locationKey={pathname === '/private-chef-punta-mita' ? 'puntaMita' : 'nuevoNayarit'} onOpenQuote={() => setQuoteOpen(true)} onNavigate={navigateTo} />
+            {servicePage ? <ServiceLandingPage page={servicePage} /> : <LocationLandingPage locationKey={pathname === '/private-chef-punta-mita' ? 'puntaMita' : 'nuevoNayarit'} onOpenQuote={() => setQuoteOpen(true)} onNavigate={navigateTo} />}
           </Suspense>
         </main>
         <Suspense fallback={null}><Footer onNavigate={navigateTo} /></Suspense>
