@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MessageCircle, Search, Users } from 'lucide-react';
 import { CHEF_WHATSAPP_NUMBER } from '../lib/leadFallback';
+import { useLanguage } from '../lib/i18n';
 
 type Menu = {
   id: string;
@@ -130,12 +131,17 @@ const cuisineOptions = [
 const priceFormatter = new Intl.NumberFormat('es-MX');
 const whatsappNumber = CHEF_WHATSAPP_NUMBER;
 
-function getWhatsAppLink(menu: Menu) {
-  const message = `Hola Chef Franko, me interesa reservar el menú ${menu.title} ($${priceFormatter.format(menu.price)} MXN por persona, de 2 a 20 personas). ¿Tienen disponibilidad?`;
+function getWhatsAppLink(menu: Menu, isEnglish: boolean) {
+  const message = isEnglish
+    ? `Hello Chef Franko, I would like to inquire about ${menu.titleEn} ($${priceFormatter.format(menu.price)} MXN per person, 2 to 20 guests). Is my date available?`
+    : `Hola Chef Franko, me interesa reservar el menú ${menu.title} ($${priceFormatter.format(menu.price)} MXN por persona, de 2 a 20 personas). ¿Tienen disponibilidad?`;
   return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 }
 
 export const MenuPage: React.FC = () => {
+  const { lang } = useLanguage();
+  const en = lang === 'en';
+  const cuisineLabelsEn: Record<string, string> = { 'Especial del Chef': 'Chef’s Special', 'Mariscos': 'Seafood', 'Pescados': 'Fish', 'Mediterránea': 'Mediterranean', 'Fusión': 'Fusion', 'Italiana': 'Italian', 'Francesa': 'French', 'Japonesa': 'Japanese', 'Local': 'Local' };
   const [query, setQuery] = useState('');
   const [cuisine, setCuisine] = useState('all');
   const [priceRange, setPriceRange] = useState('all');
@@ -164,12 +170,11 @@ export const MenuPage: React.FC = () => {
     <section className="min-h-[70vh] bg-[#0a0a0a] px-4 py-16 text-stone-100 sm:px-6 lg:px-8 lg:py-24">
       <div className="mx-auto max-w-7xl">
         <header className="max-w-3xl">
-          <h1 className="font-serif text-4xl font-light text-white sm:text-6xl">Menús privados</h1>
+          <h1 className="font-serif text-4xl font-light text-white sm:text-6xl">{en ? 'Private Chef Menus' : 'Menús privados'}</h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-stone-300 sm:text-lg">
-            Diez propuestas para compartir en casa, en tu villa o durante una celebración.
-            Servicio para grupos de 2 a 20 personas.
+            {en ? 'Ten menus for meals at home, villa dinners and celebrations. Service for groups of 2 to 20 guests.' : 'Diez propuestas para compartir en casa, en tu villa o durante una celebración. Servicio para grupos de 2 a 20 personas.'}
           </p>
-          <p className="mt-3 text-sm text-stone-400">Precios por persona en pesos mexicanos (MXN).</p>
+          <p className="mt-3 text-sm text-stone-400">{en ? 'Prices per person in Mexican pesos (MXN).' : 'Precios por persona en pesos mexicanos (MXN).'}</p>
         </header>
 
         <div className="mt-10 grid gap-4 rounded-2xl border border-stone-800 bg-[#121110] p-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -184,7 +189,7 @@ export const MenuPage: React.FC = () => {
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Menú, ingrediente o cocina"
+                placeholder={en ? 'Menu, ingredient or cuisine' : 'Menú, ingrediente o cocina'}
                 className="min-h-11 w-full rounded-lg border border-stone-700 bg-[#0a0a0a] py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-stone-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d8b96d]"
               />
             </div>
@@ -201,7 +206,7 @@ export const MenuPage: React.FC = () => {
               className="min-h-11 w-full rounded-lg border border-stone-700 bg-[#0a0a0a] px-3 py-2.5 text-sm text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d8b96d]"
             >
               <option value="all">Todas las cocinas / All cuisines</option>
-              {cuisineOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              {cuisineOptions.map(([value, label]) => <option key={value} value={value}>{en ? label.split(' / ').at(-1) : label.split(' / ')[0]}</option>)}
             </select>
           </div>
 
@@ -216,14 +221,14 @@ export const MenuPage: React.FC = () => {
               className="min-h-11 w-full rounded-lg border border-stone-700 bg-[#0a0a0a] px-3 py-2.5 text-sm text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d8b96d]"
             >
               <option value="all">Todos los precios / All prices</option>
-              <option value="up-to-1000">Hasta $1,000 MXN / pers.</option>
-              <option value="1001-1200">$1,001 a $1,200 MXN / pers.</option>
-              <option value="over-1200">Más de $1,200 MXN / pers.</option>
+              <option value="up-to-1000">{en ? 'Up to $1,000 MXN / person' : 'Hasta $1,000 MXN / pers.'}</option>
+              <option value="1001-1200">{en ? '$1,001 to $1,200 MXN / person' : '$1,001 a $1,200 MXN / pers.'}</option>
+              <option value="over-1200">{en ? 'Over $1,200 MXN / person' : 'Más de $1,200 MXN / pers.'}</option>
             </select>
           </div>
 
           <p className="self-end pb-3 text-sm text-stone-300" role="status" aria-live="polite" aria-atomic="true">
-            Mostrando <span className="font-bold text-[#d8b96d]">{filteredMenus.length}</span> de {menus.length} menús
+            {en ? 'Showing' : 'Mostrando'} <span className="font-bold text-[#d8b96d]">{filteredMenus.length}</span> {en ? 'of' : 'de'} {menus.length} {en ? 'menus' : 'menús'}
           </p>
         </div>
 
@@ -245,31 +250,31 @@ export const MenuPage: React.FC = () => {
                   <div className="mb-3 flex flex-wrap gap-2">
                     {menu.cuisineLabels.map((label) => (
                       <span key={label} className="rounded-full border border-[#c5a059]/30 bg-[#c5a059]/10 px-2.5 py-1 text-xs text-[#e2c987]">
-                        {label}
+                        {en ? (cuisineLabelsEn[label] || label) : label}
                       </span>
                     ))}
                   </div>
-                  <h2 className="font-serif text-2xl text-white">{menu.title}</h2>
-                  <p className="mt-1 text-sm italic text-stone-400">{menu.titleEn}</p>
+                  <h2 className="font-serif text-2xl text-white">{en ? menu.titleEn : menu.title}</h2>
+                  <p className="mt-1 text-sm italic text-stone-400">{en ? menu.title : menu.titleEn}</p>
                   <p className="mt-4 flex items-center gap-2 text-sm text-stone-300">
                     <Users aria-hidden="true" className="h-4 w-4 shrink-0 text-[#d8b96d]" />
-                    De 2 a 20 personas
+                    {en ? '2 to 20 guests' : 'De 2 a 20 personas'}
                   </p>
                   <div className="mt-5 flex flex-wrap items-end justify-between gap-4 border-t border-stone-800 pt-4">
                     <p>
-                      <span className="block text-xs text-stone-400">Desde</span>
+                      <span className="block text-xs text-stone-400">{en ? 'From' : 'Desde'}</span>
                       <span className="font-semibold text-white">${priceFormatter.format(menu.price)} MXN</span>
-                      <span className="ml-1 text-xs text-stone-400">/ persona</span>
+                      <span className="ml-1 text-xs text-stone-400">{en ? '/ person' : '/ persona'}</span>
                     </p>
                     <a
-                      href={getWhatsAppLink(menu)}
+                      href={getWhatsAppLink(menu, en)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#c5a059] px-4 py-2.5 text-sm font-bold text-[#11100e] transition-colors hover:bg-[#d8b96d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                     >
-                      Consultar
+                      {en ? 'Inquire' : 'Consultar'}
                       <MessageCircle aria-hidden="true" className="h-4 w-4" />
-                      <span className="sr-only">por WhatsApp sobre {menu.title}</span>
+                      <span className="sr-only">{en ? 'via WhatsApp about' : 'por WhatsApp sobre'} {en ? menu.titleEn : menu.title}</span>
                     </a>
                   </div>
                 </div>
@@ -278,13 +283,13 @@ export const MenuPage: React.FC = () => {
           </div>
         ) : (
           <div className="mt-8 rounded-2xl border border-dashed border-stone-700 px-6 py-14 text-center">
-            <p className="text-stone-300">No se encontraron menús con esos filtros.</p>
+            <p className="text-stone-300">{en ? 'No menus match these filters.' : 'No se encontraron menús con esos filtros.'}</p>
             <button
               type="button"
               onClick={resetFilters}
               className="mt-4 min-h-11 rounded-lg px-4 py-2 text-sm font-semibold text-[#e2c987] underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d8b96d]"
             >
-              Restablecer filtros
+              {en ? 'Reset filters' : 'Restablecer filtros'}
             </button>
           </div>
         )}

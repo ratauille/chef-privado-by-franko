@@ -107,7 +107,7 @@
         ]
       },
       {
-        "regex": "^/(menu|galeria|experiencias|chef-franko|reservar|privacy)/?$",
+        "regex": "^/(es(/.*)?|private-chef-punta-mita|private-chef-nuevo-nayarit|menu|galeria|experiencias|chef-franko|reservar|privacy)/?$",
         "headers": [
           {
             "key": "Cache-Control",
@@ -140,11 +140,11 @@
       },
       {
         "source": "/admin",
-        "destination": "/index.html"
+        "destination": "/admin/index.html"
       },
       {
         "source": "/admin/**",
-        "destination": "/index.html"
+        "destination": "/admin/index.html"
       },
       {
         "source": "/menu",
@@ -169,8 +169,53 @@
       {
         "source": "/privacy",
         "destination": "/privacy/index.html"
+      },
+      {
+        "source": "/es",
+        "destination": "/es/index.html"
+      },
+      {
+        "source": "/private-chef-punta-mita",
+        "destination": "/private-chef-punta-mita/index.html"
+      },
+      {
+        "source": "/es/chef-privado-punta-mita",
+        "destination": "/es/chef-privado-punta-mita/index.html"
+      },
+      {
+        "source": "/private-chef-nuevo-nayarit",
+        "destination": "/private-chef-nuevo-nayarit/index.html"
+      },
+      {
+        "source": "/es/chef-privado-nuevo-nayarit",
+        "destination": "/es/chef-privado-nuevo-nayarit/index.html"
+      },
+      {
+        "source": "/es/experiencias",
+        "destination": "/es/experiencias/index.html"
+      },
+      {
+        "source": "/es/chef-franko",
+        "destination": "/es/chef-franko/index.html"
+      },
+      {
+        "source": "/es/galeria",
+        "destination": "/es/galeria/index.html"
+      },
+      {
+        "source": "/es/reservar",
+        "destination": "/es/reservar/index.html"
+      },
+      {
+        "source": "/es/menu",
+        "destination": "/es/menu/index.html"
+      },
+      {
+        "source": "/es/privacy",
+        "destination": "/es/privacy/index.html"
       }
-    ]
+    ],
+    "trailingSlash": true
   },
   "emulators": {
     "functions": {

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { canonicalUrl, getLocalizedPath } from './pageMetadata';
 
 export type Language = 'en' | 'es';
 
@@ -988,35 +989,18 @@ export const LanguageProvider: React.FC<{ children: ReactNode; initialLang?: Lan
   // Deterministic initial language matching SSR prerendered route ('es' on /es/* routes, 'en' otherwise)
   const [lang, setLangState] = useState<Language>(initialLang);
 
-  useEffect(() => {
+  const setLang = (newLang: Language) => {
     if (typeof window !== 'undefined') {
-      const pathIsSpanish =
-        window.location.pathname === '/es' || window.location.pathname.startsWith('/es/');
-      if (pathIsSpanish) {
-        setLangState('es');
-        document.documentElement.lang = 'es-MX';
+      const path = getLocalizedPath(window.location.pathname, newLang);
+      const target = new URL(canonicalUrl(path)).pathname;
+      if (target !== window.location.pathname) {
+        // Explicit choice only: never redirect based on browser locale or saved preferences.
+        window.location.assign(target + window.location.search + window.location.hash);
         return;
       }
-      const saved = localStorage.getItem('chef4you_lang');
-      const preferred: Language =
-        saved === 'en' || saved === 'es'
-          ? saved
-          : (navigator.language || '').toLowerCase().startsWith('es')
-          ? 'es'
-          : 'en';
-      if (preferred !== initialLang) {
-        setLangState(preferred);
-      }
-      document.documentElement.lang = preferred === 'es' ? 'es-MX' : 'en';
-    }
-  }, [initialLang]);
-
-  const setLang = (newLang: Language) => {
-    setLangState(newLang);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('chef4you_lang', newLang);
       document.documentElement.lang = newLang === 'es' ? 'es-MX' : 'en';
     }
+    setLangState(newLang);
   };
 
   const toggleLang = () => {
