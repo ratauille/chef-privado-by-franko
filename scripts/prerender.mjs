@@ -99,6 +99,12 @@ const routes = {
     description:
       'Comparte fecha, número de invitados, ubicación y preferencias para solicitar una propuesta de chef privado en Puerto Vallarta, Punta Mita o Nuevo Nayarit.',
   },
+  '/admin': {
+    title: 'Administración | Chef4You by Franko',
+    description:
+      'Panel administrativo de Chef4You by Franko.',
+    noIndex: true,
+  },
 };
 
 function replaceMeta(html, route, meta) {
