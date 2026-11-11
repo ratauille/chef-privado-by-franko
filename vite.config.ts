@@ -23,7 +23,18 @@ function replaceMeta(html: string, attribute: 'name' | 'property', key: string, 
 function staticRouteMetadata() {
   return {
     name: 'static-route-metadata',
-    apply: 'build' as const,
+    configurePreviewServer(server: { middlewares: { use: (fn: (req: { url?: string }, res: unknown, next: () => void) => void) => void } }) {
+      server.middlewares.use((req, _res, next) => {
+        if (req.url) {
+          const [rawPath, query] = req.url.split('?');
+          const cleanPath = rawPath.replace(/\/+$/, '') || '/';
+          if (cleanPath !== '/' && Object.prototype.hasOwnProperty.call(pageMetadata, cleanPath)) {
+            req.url = `${cleanPath}/index.html${query ? `?${query}` : ''}`;
+          }
+        }
+        next();
+      });
+    },
     closeBundle() {
       const outputDirectory = path.resolve(__dirname, 'dist');
       const template = readFileSync(path.join(outputDirectory, 'index.html'), 'utf8');
@@ -78,9 +89,26 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
-          motion: ['motion/react'],
+        manualChunks(id) {
+          const normalized = id.replace(/\\/g, '/');
+          if (
+            normalized.includes('/node_modules/react/') ||
+            normalized.includes('/node_modules/react-dom/') ||
+            normalized.includes('/node_modules/scheduler/')
+          ) {
+            return 'react-vendor';
+          }
+          if (normalized.includes('/node_modules/firebase/') || normalized.includes('/node_modules/@firebase/')) {
+            return 'firebase';
+          }
+          if (
+            normalized.includes('/node_modules/motion/') ||
+            normalized.includes('/node_modules/framer-motion/') ||
+            normalized.includes('/node_modules/motion-dom/') ||
+            normalized.includes('/node_modules/motion-utils/')
+          ) {
+            return 'motion';
+          }
         },
       },
     },

@@ -26,11 +26,15 @@ export const ChefBio: React.FC<ChefBioProps> = ({ onOpenQuote, isFullView }) => 
           transition={{ duration: 0.7 }}
         >
           <img
-            src="/assets/chef_franko_portrait.jpg"
+            src="/assets/chef_franko_portrait-desktop.webp"
+            srcSet="/assets/chef_franko_portrait-mobile.webp 540w, /assets/chef_franko_portrait-desktop.webp 960w"
+            sizes="(max-width: 1024px) 92vw, 40vw"
             alt={lang === 'es' ? 'Retrato del Chef Franko Salgado' : 'Portrait of Chef Franko Salgado'}
-            width="1254"
-            height="1254"
-            loading="lazy"
+            width={960}
+            height={960}
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
             className="w-full h-[520px] object-cover rounded-3xl border border-stone-800 shadow-2xl"
           />
         </motion.div>

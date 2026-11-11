@@ -135,6 +135,11 @@ function getWhatsAppLink(menu: Menu) {
   return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 }
 
+function getUnsplashSrcSet(url: string) {
+  const base = url.split('?')[0];
+  return `${base}?auto=format&fit=crop&w=480&fm=webp&q=75 480w, ${base}?auto=format&fit=crop&w=800&fm=webp&q=80 800w`;
+}
+
 export const MenuPage: React.FC = () => {
   const [query, setQuery] = useState('');
   const [cuisine, setCuisine] = useState('all');
@@ -229,15 +234,19 @@ export const MenuPage: React.FC = () => {
 
         {filteredMenus.length > 0 ? (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredMenus.map((menu) => (
+            {filteredMenus.map((menu, index) => (
               <article key={menu.id} className="flex flex-col overflow-hidden rounded-2xl border border-stone-800 bg-[#121110]">
                 <div className="relative h-52 overflow-hidden bg-stone-900">
                   <img
                     src={menu.image}
+                    srcSet={getUnsplashSrcSet(menu.image)}
+                    sizes="(max-width: 640px) 92vw, (max-width: 1024px) 46vw, 31vw"
                     alt={menu.imageAlt}
-                    width="800"
-                    height="600"
-                    loading="lazy"
+                    width={800}
+                    height={600}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={index === 0 ? 'high' : undefined}
+                    decoding="async"
                     className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                   />
                 </div>

@@ -31,6 +31,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const links = [
     { path: '/experiencias', label: t.nav.experiences },
+    { path: '/private-chef-punta-mita', label: t.nav.puntaMita },
+    { path: '/private-chef-nuevo-nayarit', label: t.nav.nuevoNayarit },
     { path: '/chef-franko', label: t.nav.chefFranko },
     { path: '/galeria', label: t.nav.gallery },
   ];

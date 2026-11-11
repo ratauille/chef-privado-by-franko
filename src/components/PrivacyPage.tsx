@@ -131,18 +131,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
               </li>
             </ul>
 
-            <div className="mt-3 p-4 rounded-xl bg-stone-900/80 border border-stone-800 space-y-2 text-xs text-stone-400">
-              <p className="font-semibold text-amber-300/90">
-                {lang === 'es' ? 'Mecanismo de Consentimiento Expreso en Desarrollo (Todavía sin activar):' : 'Proposed Express Consent Mechanism (Under Development):'}
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-stone-300">
-                <li>{lang === 'es' ? 'Campo de información de salud opcional y completamente separado de las notas generales.' : 'Optional health/allergy input separate from general service notes.'}</li>
-                <li>{lang === 'es' ? 'Casilla específica de consentimiento, desmarcada por defecto, vinculada al texto definitivo.' : 'Specific opt-in checkbox, unchecked by default, referencing the final notice.'}</li>
-                <li>{lang === 'es' ? 'Finalidad estrictamente delimitada a la preparación y prestación segura de los alimentos.' : 'Purpose strictly delimited to food safety and customized meal preparation.'}</li>
-                <li>{lang === 'es' ? 'Posibilidad de solicitar cotizaciones preliminares sin proporcionar datos de salud.' : 'Ability to request preliminary quotes without submitting health data.'}</li>
-                <li>{lang === 'es' ? 'Registro auditable de la decisión con acceso técnico restringido.' : 'Restricted-access logging of consent decisions.'}</li>
-              </ul>
-            </div>
+
           </div>
         </section>
 

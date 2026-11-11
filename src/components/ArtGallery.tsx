@@ -12,6 +12,8 @@ interface ArtGalleryProps {
 export interface GalleryItem {
   id: string;
   src: string;
+  srcSet: string;
+  sizes: string;
   alt: string;
   titleEn: string;
   titleEs: string;
@@ -27,6 +29,8 @@ const GALLERY_ITEMS: GalleryItem[] = [
   {
     id: '1',
     src: '/assets/IMG_1937.webp',
+    srcSet: '/assets/IMG_1937-mobile.webp 480w, /assets/IMG_1937.webp 683w',
+    sizes: '(max-width: 768px) 92vw, 48vw',
     alt: 'Private dining experience prepared by Chef Franko with plated lamb and fish',
     titleEn: 'The Landscape Plate',
     titleEs: 'El Plato como Paisaje',
@@ -34,48 +38,56 @@ const GALLERY_ITEMS: GalleryItem[] = [
     subtitleEs: 'Composición de autor con proteínas de origen y emulsiones',
     category: 'platos',
     aspect: 'md:col-span-2 md:row-span-2',
-    width: 1200,
-    height: 900,
+    width: 683,
+    height: 911,
   },
   {
     id: '2',
     src: '/assets/IMG_1389.webp',
+    srcSet: '/assets/IMG_1389-mobile.webp 480w, /assets/IMG_1389.webp 683w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Glazed roasted meat with vegetable purees and edible flowers on a white plate',
     titleEn: 'Product, Technique & Color',
     titleEs: 'Producto, Técnica & Color',
     subtitleEn: 'Glazed tenderloin and seasonal microgreens',
     subtitleEs: 'Corte de carne magra glaseada y brotes de temporada',
     category: 'platos',
-    width: 800,
-    height: 600,
+    width: 683,
+    height: 911,
   },
   {
     id: '3',
-    src: '/assets/IMG_0305.JPG',
+    src: '/assets/IMG_0305-desktop.webp',
+    srcSet: '/assets/IMG_0305-mobile.webp 480w, /assets/IMG_0305-desktop.webp 683w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Chef Franko carefully plating a dish in a professional kitchen',
     titleEn: 'Chef Franko in Action',
     titleEs: 'Chef Franko en Acción',
     subtitleEn: 'Artisanal focus on every plated detail',
     subtitleEs: 'Enfoque artesanal en cada detalle del montaje',
     category: 'brigada',
-    width: 800,
-    height: 600,
+    width: 683,
+    height: 911,
   },
   {
     id: '4',
     src: '/assets/IMG_1823.webp',
+    srcSet: '/assets/IMG_1823-mobile.webp 540w, /assets/IMG_1823.webp 1215w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Elegant table setting prepared for a private villa dinner',
     titleEn: 'The Ritual of Table Hospitality',
     titleEs: 'El Ritual del Servicio',
     subtitleEn: 'Full table setting with fine china and crystal stemware',
     subtitleEs: 'Servicio de mesa con vajilla fina y cristalería de gala',
     category: 'eventos',
-    width: 800,
-    height: 600,
+    width: 1215,
+    height: 911,
   },
   {
     id: '5',
     src: '/assets/IMG_1767.webp',
+    srcSet: '/assets/IMG_1767-mobile.webp 480w, /assets/IMG_1767.webp 683w',
+    sizes: '(max-width: 768px) 92vw, 48vw',
     alt: 'Seasonal plated dish decorated with peas, edible flowers and delicate foam',
     titleEn: 'A Story in Every Course',
     titleEs: 'Una Historia en Cada Tiempo',
@@ -83,84 +95,98 @@ const GALLERY_ITEMS: GalleryItem[] = [
     subtitleEs: 'Texturas crocantes y espumas delicadas',
     category: 'platos',
     aspect: 'md:col-span-2',
-    width: 1200,
-    height: 600,
+    width: 683,
+    height: 911,
   },
   {
     id: '6',
     src: '/assets/IMG_8021.webp',
+    srcSet: '/assets/IMG_8021-mobile.webp 640w, /assets/IMG_8021.webp 1376w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Artistic dessert presented inside a blown sugar sphere',
     titleEn: 'Moments of Wonder',
     titleEs: 'El Momento de Asombro',
     subtitleEn: 'Avant-garde pastry artistry and blown sugar dome',
     subtitleEs: 'Pastelería de autor y vanguardia',
     category: 'platos',
-    width: 800,
-    height: 600,
+    width: 1376,
+    height: 774,
   },
   {
     id: '7',
-    src: '/assets/IMG_0488.JPG',
+    src: '/assets/IMG_0488-desktop.webp',
+    srcSet: '/assets/IMG_0488-mobile.webp 540w, /assets/IMG_0488-desktop.webp 960w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Chef preparing fresh Pacific seafood with precise cutting technique',
     titleEn: 'Culinary Precision',
     titleEs: 'Precisión Culinaria',
     subtitleEn: 'Daily hand-selection of fresh Pacific seafood catch',
     subtitleEs: 'Selección rigurosa de producto fresco del Pacífico',
     category: 'tecnica',
-    width: 800,
-    height: 600,
+    width: 960,
+    height: 540,
   },
   {
     id: '8',
-    src: '/assets/IMG_0489.JPG',
+    src: '/assets/IMG_0489-desktop.webp',
+    srcSet: '/assets/IMG_0489-mobile.webp 480w, /assets/IMG_0489-desktop.webp 783w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Close-up of a plated dish finished with organic microgreens',
     titleEn: 'Microgreens & Equilibrium',
     titleEs: 'Microgreens & Equilibrio',
     subtitleEn: 'Harmonious balance between texture, acidity and aesthetics',
     subtitleEs: 'Armonía entre textura, acidez y estética',
     category: 'tecnica',
-    width: 800,
-    height: 600,
+    width: 783,
+    height: 783,
   },
   {
     id: '9',
     src: '/assets/IMG_0493.webp',
+    srcSet: '/assets/IMG_0493-mobile.webp 480w, /assets/IMG_0493.webp 783w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Chef carefully arranging sauces and modern culinary garnishes on a plate',
     titleEn: 'Geometry of Flavor',
     titleEs: 'Geometría del Sabor',
     subtitleEn: 'Handmade slow reductions and molecular flavor accents',
     subtitleEs: 'Reducciones artesanales y concentrados',
     category: 'tecnica',
-    width: 800,
-    height: 600,
+    width: 783,
+    height: 783,
   },
   {
     id: '10',
     src: '/assets/IMG_0495.webp',
+    srcSet: '/assets/IMG_0495-mobile.webp 480w, /assets/IMG_0495.webp 765w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Chef searing ingredients in a hot pan over open flame',
     titleEn: 'Fire & Searing Technique',
     titleEs: 'Fuego & Temperatura',
     subtitleEn: 'High-temperature pan sear to lock in natural juices',
     subtitleEs: 'Sellado a alta temperatura para retener jugosidad',
     category: 'tecnica',
-    width: 800,
-    height: 600,
+    width: 765,
+    height: 783,
   },
   {
     id: '12',
-    src: '/assets/private_chef_flatlay.jpg',
+    src: '/assets/private_chef_flatlay-desktop.webp',
+    srcSet: '/assets/private_chef_flatlay-mobile.webp 480w, /assets/private_chef_flatlay-desktop.webp 960w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Overhead view of a curated private dining table with plated dishes',
     titleEn: 'Complete Dining Experience',
     titleEs: 'Experiencia Culinaria Completa',
     subtitleEn: 'From curated market ingredients to effortless hosting',
     subtitleEs: 'De la selección de ingredientes hasta la sobremesa',
     category: 'eventos',
-    width: 800,
-    height: 600,
+    width: 960,
+    height: 960,
   },
   {
     id: '13',
     src: '/assets/img_0849.webp',
+    srcSet: '/assets/img_0849-mobile.webp 480w, /assets/img_0849.webp 683w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Seared seafood plated with citrus puree, vanilla and a delicate sauce',
     titleEn: 'Citrus & Sea',
     titleEs: 'Cítricos y Mar',
@@ -168,11 +194,13 @@ const GALLERY_ITEMS: GalleryItem[] = [
     subtitleEs: 'Composición marina con notas tropicales y brillantes',
     category: 'platos',
     width: 683,
-    height: 1024,
+    height: 911,
   },
   {
     id: '14',
-    src: '/assets/dessert_mint_sphere.jpg',
+    src: '/assets/dessert_mint_sphere-desktop.webp',
+    srcSet: '/assets/dessert_mint_sphere-mobile.webp 540w, /assets/dessert_mint_sphere-desktop.webp 1024w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Mint ice cream sphere with delicate dessert garnishes and fresh herbs',
     titleEn: 'Mint Garden',
     titleEs: 'Jardín de Menta',
@@ -180,11 +208,13 @@ const GALLERY_ITEMS: GalleryItem[] = [
     subtitleEs: 'Hierbas frescas, color y texturas de pastelería',
     category: 'platos',
     width: 1024,
-    height: 683,
+    height: 603,
   },
   {
     id: '15',
-    src: '/assets/dessert_chocolate_cone.jpg',
+    src: '/assets/dessert_chocolate_cone-desktop.webp',
+    srcSet: '/assets/dessert_chocolate_cone-mobile.webp 540w, /assets/dessert_chocolate_cone-desktop.webp 1024w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Modern dessert with a chocolate cone, fruit and crisp garnishes',
     titleEn: 'Cacao & Texture',
     titleEs: 'Cacao y Textura',
@@ -192,11 +222,13 @@ const GALLERY_ITEMS: GalleryItem[] = [
     subtitleEs: 'Arquitectura de pastelería con fruta de temporada',
     category: 'platos',
     width: 1024,
-    height: 683,
+    height: 559,
   },
   {
     id: '16',
     src: '/assets/postre_patrio.webp',
+    srcSet: '/assets/postre_patrio-mobile.webp 480w, /assets/postre_patrio.webp 683w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Mexican-inspired signature dessert by Chef Franko with cream, berries and herbs',
     titleEn: 'Seasonal Celebration',
     titleEs: 'Celebración de Temporada',
@@ -204,11 +236,13 @@ const GALLERY_ITEMS: GalleryItem[] = [
     subtitleEs: 'Composición inspirada en ingredientes y colores mexicanos',
     category: 'platos',
     width: 683,
-    height: 1024,
+    height: 911,
   },
   {
     id: '17',
     src: '/assets/paleta_de_chivo.webp',
+    srcSet: '/assets/paleta_de_chivo-mobile.webp 480w, /assets/paleta_de_chivo.webp 683w',
+    sizes: '(max-width: 768px) 92vw, 24vw',
     alt: 'Roasted goat shoulder prepared by Chef Franko with seasonal garnish',
     titleEn: 'Slow-Roasted Goat',
     titleEs: 'Paleta de Chivo',
@@ -216,7 +250,7 @@ const GALLERY_ITEMS: GalleryItem[] = [
     subtitleEs: 'Cocción lenta, profundidad de sabor y precisión',
     category: 'platos',
     width: 683,
-    height: 1024,
+    height: 911,
   },
 ];
 
@@ -343,10 +377,14 @@ export const ArtGallery: React.FC<ArtGalleryProps> = ({ onOpenQuote, isFullView 
                   <figure className="h-full w-full">
                     <img
                       src={item.src}
+                      srcSet={item.srcSet}
+                      sizes={item.sizes}
                       alt={item.alt}
                       width={item.width}
                       height={item.height}
-                      loading="lazy"
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={index === 0 ? 'high' : undefined}
+                      decoding="async"
                       className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105 group-hover:brightness-90"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-95" />
@@ -459,7 +497,11 @@ export const ArtGallery: React.FC<ArtGalleryProps> = ({ onOpenQuote, isFullView 
               <div className="md:w-2/3 bg-black flex items-center justify-center relative max-h-[70vh]">
                 <img
                   src={displayedItems[selectedIndex].src}
+                  srcSet={displayedItems[selectedIndex].srcSet}
+                  sizes="(max-width: 768px) 92vw, 60vw"
                   alt={displayedItems[selectedIndex].alt}
+                  width={displayedItems[selectedIndex].width}
+                  height={displayedItems[selectedIndex].height}
                   className="max-h-[70vh] w-full object-contain"
                 />
               </div>

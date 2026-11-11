@@ -1,8 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Sparkles } from 'lucide-react';
-import { Navbar } from './components/Navbar';
 import { HomePage } from './components/HomePage';
-import { MenuPage } from './components/MenuPage';
 import { LanguageProvider, useLanguage } from './lib/i18n';
 import { pageMetadata, siteUrl } from './lib/pageMetadata';
 
@@ -18,6 +16,9 @@ function setMeta(attribute: 'name' | 'property', key: string, content: string) {
 }
 
 // Lazy-loaded components for optimal bundle splitting and fast mobile LCP
+const Navbar = lazy(() => import('./components/Navbar').then(m => ({ default: m.Navbar })));
+const MenuPage = lazy(() => import('./components/MenuPage').then(m => ({ default: m.MenuPage })));
+const LocationLandingPage = lazy(() => import('./components/LocationLandingPage').then(m => ({ default: m.LocationLandingPage })));
 const Experiences = lazy(() => import('./components/Experiences').then(m => ({ default: m.Experiences })));
 const ChefBio = lazy(() => import('./components/ChefBio').then(m => ({ default: m.ChefBio })));
 const Footer = lazy(() => import('./components/Footer').then(m => ({ default: m.Footer })));
@@ -158,12 +159,14 @@ function AppContent({ initialPath }: AppProps) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
         {skipLink}
-        <Navbar
-          currentPath={pathname}
-          onNavigate={navigateTo}
-          onOpenQuote={() => setQuoteOpen(true)}
-          onOpenAI={() => setAiChatOpen(true)}
-        />
+        <Suspense fallback={null}>
+          <Navbar
+            currentPath={pathname}
+            onNavigate={navigateTo}
+            onOpenQuote={() => setQuoteOpen(true)}
+            onOpenAI={() => setAiChatOpen(true)}
+          />
+        </Suspense>
         <main id="main-content" tabIndex={-1} className="pt-4 outline-none">
           <Suspense fallback={<LoadingSpinner />}>
             <ArtGallery isFullView onOpenQuote={() => setQuoteOpen(true)} />
@@ -182,12 +185,14 @@ function AppContent({ initialPath }: AppProps) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
         {skipLink}
-        <Navbar
-          currentPath={pathname}
-          onNavigate={navigateTo}
-          onOpenQuote={() => setQuoteOpen(true)}
-          onOpenAI={() => setAiChatOpen(true)}
-        />
+        <Suspense fallback={null}>
+          <Navbar
+            currentPath={pathname}
+            onNavigate={navigateTo}
+            onOpenQuote={() => setQuoteOpen(true)}
+            onOpenAI={() => setAiChatOpen(true)}
+          />
+        </Suspense>
         <main id="main-content" tabIndex={-1} className="pt-4 outline-none">
           <Suspense fallback={<LoadingSpinner />}>
             <Experiences isFullView onOpenQuote={() => setQuoteOpen(true)} />
@@ -206,12 +211,14 @@ function AppContent({ initialPath }: AppProps) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
         {skipLink}
-        <Navbar
-          currentPath={pathname}
-          onNavigate={navigateTo}
-          onOpenQuote={() => setQuoteOpen(true)}
-          onOpenAI={() => setAiChatOpen(true)}
-        />
+        <Suspense fallback={null}>
+          <Navbar
+            currentPath={pathname}
+            onNavigate={navigateTo}
+            onOpenQuote={() => setQuoteOpen(true)}
+            onOpenAI={() => setAiChatOpen(true)}
+          />
+        </Suspense>
         <main id="main-content" tabIndex={-1} className="pt-4 outline-none">
           <Suspense fallback={<LoadingSpinner />}>
             <ChefBio isFullView onOpenQuote={() => setQuoteOpen(true)} />
@@ -230,14 +237,18 @@ function AppContent({ initialPath }: AppProps) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
         {skipLink}
-        <Navbar
-          currentPath={pathname}
-          onNavigate={navigateTo}
-          onOpenQuote={() => setQuoteOpen(true)}
-          onOpenAI={() => setAiChatOpen(true)}
-        />
+        <Suspense fallback={null}>
+          <Navbar
+            currentPath={pathname}
+            onNavigate={navigateTo}
+            onOpenQuote={() => setQuoteOpen(true)}
+            onOpenAI={() => setAiChatOpen(true)}
+          />
+        </Suspense>
         <main id="main-content" tabIndex={-1} className="outline-none">
-          <MenuPage />
+          <Suspense fallback={<LoadingSpinner />}>
+            <MenuPage />
+          </Suspense>
         </main>
         <Suspense fallback={null}>
           <Footer onNavigate={navigateTo} />
@@ -252,12 +263,14 @@ function AppContent({ initialPath }: AppProps) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
         {skipLink}
-        <Navbar
-          currentPath={pathname}
-          onNavigate={navigateTo}
-          onOpenQuote={() => setQuoteOpen(true)}
-          onOpenAI={() => setAiChatOpen(true)}
-        />
+        <Suspense fallback={null}>
+          <Navbar
+            currentPath={pathname}
+            onNavigate={navigateTo}
+            onOpenQuote={() => setQuoteOpen(true)}
+            onOpenAI={() => setAiChatOpen(true)}
+          />
+        </Suspense>
         <main id="main-content" tabIndex={-1} className="outline-none">
           <Suspense fallback={<LoadingSpinner />}>
             <ReservationPage />
@@ -276,12 +289,14 @@ function AppContent({ initialPath }: AppProps) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
         {skipLink}
-        <Navbar
-          currentPath={pathname}
-          onNavigate={navigateTo}
-          onOpenQuote={() => setQuoteOpen(true)}
-          onOpenAI={() => setAiChatOpen(true)}
-        />
+        <Suspense fallback={null}>
+          <Navbar
+            currentPath={pathname}
+            onNavigate={navigateTo}
+            onOpenQuote={() => setQuoteOpen(true)}
+            onOpenAI={() => setAiChatOpen(true)}
+          />
+        </Suspense>
         <main id="main-content" tabIndex={-1} className="outline-none">
           <Suspense fallback={<LoadingSpinner />}>
             <PrivacyPage onNavigate={navigateTo} onOpenQuote={() => setQuoteOpen(true)} />
@@ -295,17 +310,50 @@ function AppContent({ initialPath }: AppProps) {
     );
   }
 
-  // Route 7: 404 / Página no disponible (evita que rutas no publicadas como /privacy muestren Inicio o el borrador)
+  // Routes: /private-chef-punta-mita & /private-chef-nuevo-nayarit
+  if (pathname === '/private-chef-punta-mita' || pathname === '/private-chef-nuevo-nayarit') {
+    const locationKey = pathname === '/private-chef-punta-mita' ? 'puntaMita' : 'nuevoNayarit';
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
+        {skipLink}
+        <Suspense fallback={null}>
+          <Navbar
+            currentPath={pathname}
+            onNavigate={navigateTo}
+            onOpenQuote={() => setQuoteOpen(true)}
+            onOpenAI={() => setAiChatOpen(true)}
+          />
+        </Suspense>
+        <main id="main-content" tabIndex={-1} className="outline-none">
+          <Suspense fallback={<LoadingSpinner />}>
+            <LocationLandingPage
+              locationKey={locationKey}
+              onOpenQuote={() => setQuoteOpen(true)}
+              onNavigate={navigateTo}
+            />
+          </Suspense>
+        </main>
+        <Suspense fallback={null}>
+          <Footer onNavigate={navigateTo} />
+        </Suspense>
+        {globalOverlays}
+      </div>
+    );
+  }
+
+  // Route 7: 404 / Página no disponible
   if (pathname !== '/') {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-stone-100 font-sans selection:bg-[#c5a059] selection:text-black">
         {skipLink}
-        <Navbar
-          currentPath={pathname}
-          onNavigate={navigateTo}
-          onOpenQuote={() => setQuoteOpen(true)}
-          onOpenAI={() => setAiChatOpen(true)}
-        />
+        <Suspense fallback={null}>
+          <Navbar
+            currentPath={pathname}
+            onNavigate={navigateTo}
+            onOpenQuote={() => setQuoteOpen(true)}
+            onOpenAI={() => setAiChatOpen(true)}
+          />
+        </Suspense>
         <main id="main-content" tabIndex={-1} className="py-24 px-4 text-center outline-none">
           <div className="max-w-md mx-auto space-y-6">
             <span className="text-[#c5a059] text-xs font-mono uppercase tracking-[0.2em]">404 · Error</span>

@@ -14,6 +14,16 @@ const routes = {
     description:
       'Luxury private chef experiences, personalized tasting menus and villa dining in Puerto Vallarta, Punta Mita and Riviera Nayarit. Book Chef Franko.',
   },
+  '/private-chef-punta-mita': {
+    title: 'Private Chef in Punta Mita | Chef 4 You by Franko',
+    description:
+      'Private chef in Punta Mita for villa dinners, intimate celebrations and bespoke tasting menus with fresh Pacific seafood, table service and full kitchen cleanup.',
+  },
+  '/private-chef-nuevo-nayarit': {
+    title: 'Private Chef in Nuevo Nayarit | Chef 4 You by Franko',
+    description:
+      'Private chef in Nuevo Nayarit for family meals, group gatherings and vacation dinners at your residence, including ingredient sourcing, table service and cleanup.',
+  },
   '/menu': {
     title: 'Menús y precios | Chef4You by Franko',
     description:

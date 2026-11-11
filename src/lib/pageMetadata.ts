@@ -6,6 +6,16 @@ export const pageMetadata: Record<string, { title: string; description: string; 
     description: 'Experiencias gastronómicas privadas, menús de autor y cenas en villas en Puerto Vallarta, Punta Mita y Nuevo Nayarit con el Chef Franko Salgado.',
     lang: 'en',
   },
+  '/private-chef-punta-mita': {
+    title: 'Private Chef in Punta Mita | Chef 4 You by Franko',
+    description: 'Private chef in Punta Mita for villa dinners, intimate celebrations and bespoke tasting menus with fresh Pacific seafood, table service and full kitchen cleanup.',
+    lang: 'en',
+  },
+  '/private-chef-nuevo-nayarit': {
+    title: 'Private Chef in Nuevo Nayarit | Chef 4 You by Franko',
+    description: 'Private chef in Nuevo Nayarit for family meals, group gatherings and vacation dinners at your residence, including ingredient sourcing, table service and cleanup.',
+    lang: 'en',
+  },
   '/menu': {
     title: 'Menús y precios | Chef4You by Franko',
     description: 'Explora diez menús de chef privado para grupos de 2 a 20 personas, con precios por persona en MXN. Servicio en Puerto Vallarta, Punta Mita y Nuevo Nayarit.',

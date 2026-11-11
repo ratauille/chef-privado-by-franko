@@ -9,12 +9,48 @@ interface ExperiencesProps {
 }
 
 const experienceImages = [
-  '/assets/banquete_gala_frente_al_mar.jpg',
-  '/assets/cena_degustacion_5_tiempos.webp',
-  '/assets/IMG_1937.webp',
-  '/assets/belli_pure_cebolla_tatemada.webp',
-  '/assets/creme_brulee_cangrejo_real.webp',
-  '/assets/IMG_1389.webp',
+  {
+    src: '/assets/banquete_gala_frente_al_mar-desktop.webp',
+    srcSet: '/assets/banquete_gala_frente_al_mar-mobile.webp 480w, /assets/banquete_gala_frente_al_mar-desktop.webp 840w',
+    sizes: '(max-width: 768px) 92vw, (max-width: 1024px) 46vw, 31vw',
+    width: 840,
+    height: 1120,
+  },
+  {
+    src: '/assets/cena_degustacion_5_tiempos-desktop.webp',
+    srcSet: '/assets/cena_degustacion_5_tiempos-mobile.webp 480w, /assets/cena_degustacion_5_tiempos-desktop.webp 840w',
+    sizes: '(max-width: 768px) 92vw, (max-width: 1024px) 46vw, 31vw',
+    width: 840,
+    height: 1120,
+  },
+  {
+    src: '/assets/IMG_1937.webp',
+    srcSet: '/assets/IMG_1937-mobile.webp 480w, /assets/IMG_1937.webp 683w',
+    sizes: '(max-width: 768px) 92vw, (max-width: 1024px) 46vw, 31vw',
+    width: 683,
+    height: 911,
+  },
+  {
+    src: '/assets/belli_pure_cebolla_tatemada-desktop.webp',
+    srcSet: '/assets/belli_pure_cebolla_tatemada-mobile.webp 480w, /assets/belli_pure_cebolla_tatemada-desktop.webp 840w',
+    sizes: '(max-width: 768px) 92vw, (max-width: 1024px) 46vw, 31vw',
+    width: 840,
+    height: 1120,
+  },
+  {
+    src: '/assets/creme_brulee_cangrejo_real-desktop.webp',
+    srcSet: '/assets/creme_brulee_cangrejo_real-mobile.webp 480w, /assets/creme_brulee_cangrejo_real-desktop.webp 800w',
+    sizes: '(max-width: 768px) 92vw, (max-width: 1024px) 46vw, 31vw',
+    width: 800,
+    height: 1200,
+  },
+  {
+    src: '/assets/IMG_1389.webp',
+    srcSet: '/assets/IMG_1389-mobile.webp 480w, /assets/IMG_1389.webp 683w',
+    sizes: '(max-width: 768px) 92vw, (max-width: 1024px) 46vw, 31vw',
+    width: 683,
+    height: 911,
+  },
 ];
 
 const experienceImageAlts = [
@@ -46,44 +82,53 @@ export const Experiences: React.FC<ExperiencesProps> = ({ onOpenQuote, isFullVie
         </div>
 
         <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {t.experiences.items.map((exp, i) => (
-            <motion.article
-              key={exp.title}
-              className="rounded-3xl overflow-hidden bg-[#141312] border border-stone-800/90 flex flex-col hover:border-[#c5a059]/40 transition-all shadow-xl group"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.06 }}
-            >
-              <div className="h-64 overflow-hidden relative">
-                <img
-                  src={experienceImages[i] || experienceImages[0]}
-                  alt={experienceImageAlts[i] || experienceImageAlts[0]}
-                  loading="lazy"
-                  className="w-full h-full object-cover transition duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#141312] via-transparent to-transparent opacity-80" />
-              </div>
+          {t.experiences.items.map((exp, i) => {
+            const imgAsset = experienceImages[i] || experienceImages[0];
+            return (
+              <motion.article
+                key={exp.title}
+                className="rounded-3xl overflow-hidden bg-[#141312] border border-stone-800/90 flex flex-col hover:border-[#c5a059]/40 transition-all shadow-xl group"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.06 }}
+              >
+                <div className="h-64 overflow-hidden relative">
+                  <img
+                    src={imgAsset.src}
+                    srcSet={imgAsset.srcSet}
+                    sizes={imgAsset.sizes}
+                    alt={experienceImageAlts[i] || experienceImageAlts[0]}
+                    width={imgAsset.width}
+                    height={imgAsset.height}
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={i === 0 ? 'high' : undefined}
+                    decoding="async"
+                    className="w-full h-full object-cover transition duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#141312] via-transparent to-transparent opacity-80" />
+                </div>
 
-              <div className="p-7 flex flex-col flex-1">
-                <h2 className="font-serif text-2xl font-light text-white group-hover:text-[#d8b96d] transition-colors">
-                  {exp.title}
-                </h2>
-                <p className="mt-3 text-stone-400 text-sm leading-relaxed flex-1 font-light">
-                  {exp.desc}
-                </p>
-                <button
-                  type="button"
-                  onClick={onOpenQuote}
-                  aria-label={`${exp.cta}: ${exp.title}`}
-                  className="mt-6 w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-[#c5a059] via-[#d8b96d] to-[#9e7c33] text-stone-950 font-bold text-xs uppercase tracking-wider shadow-md hover:brightness-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[#c5a059]"
-                >
-                  <span>{exp.cta}</span>
-                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </button>
-              </div>
-            </motion.article>
-          ))}
+                <div className="p-7 flex flex-col flex-1">
+                  <h2 className="font-serif text-2xl font-light text-white group-hover:text-[#d8b96d] transition-colors">
+                    {exp.title}
+                  </h2>
+                  <p className="mt-3 text-stone-400 text-sm leading-relaxed flex-1 font-light">
+                    {exp.desc}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={onOpenQuote}
+                    aria-label={`${exp.cta}: ${exp.title}`}
+                    className="mt-6 w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-[#c5a059] via-[#d8b96d] to-[#9e7c33] text-stone-950 font-bold text-xs uppercase tracking-wider shadow-md hover:brightness-110 active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-[#c5a059]"
+                  >
+                    <span>{exp.cta}</span>
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </button>
+                </div>
+              </motion.article>
+            );
+          })}
         </div>
       </div>
     </section>

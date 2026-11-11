@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight, Calendar, MapPin, Menu, Star, X, Sparkles } from 'lucide-react';
 import { useLanguage } from '../lib/i18n';
+import { DESTINATION_IMAGES } from '../lib/destinationImages';
 
 const WA_HREF =
   'https://wa.me/5213221606843?text=Hola%20Chef%20Franko%2C%20quisiera%20informaci%C3%B3n%20para%20una%20experiencia%20de%20chef%20privado.';
@@ -34,13 +35,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onOpenAI, onNav
   const { lang, setLang, t } = useLanguage();
 
   const waHref = `https://wa.me/5213221606843?text=${encodeURIComponent(t.nav.whatsappMessage)}`;
-  const prefix = lang === 'es' ? '/es' : '';
-  const experiencesPath = `${prefix}/experiencias/`;
-  const puntaMitaPath = lang === 'es' ? '/es/chef-privado-punta-mita/' : '/private-chef-punta-mita/';
-  const nuevoNayaritPath = lang === 'es' ? '/es/chef-privado-nuevo-nayarit/' : '/private-chef-nuevo-nayarit/';
-  const chefFrankoPath = `${prefix}/chef-franko/`;
-  const galleryPath = `${prefix}/galeria/`;
-  const reservarPath = `${prefix}/reservar/`;
+  const prefix = '';
+  const experiencesPath = '/experiencias';
+  const puntaMitaPath = '/private-chef-punta-mita';
+  const nuevoNayaritPath = '/private-chef-nuevo-nayarit';
+  const chefFrankoPath = '/chef-franko';
+  const galleryPath = '/galeria';
+  const reservarPath = '/reservar';
 
   const go = (event: React.MouseEvent<HTMLAnchorElement>, path: string) => {
     event.preventDefault();
@@ -49,9 +50,27 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onOpenAI, onNav
   };
 
   const experienceImages = [
-    '/assets/banquete_gala_frente_al_mar.jpg',
-    '/assets/cena_degustacion_5_tiempos.webp',
-    '/assets/IMG_1937.webp',
+    {
+      src: '/assets/banquete_gala_frente_al_mar-desktop.webp',
+      srcSet: '/assets/banquete_gala_frente_al_mar-mobile.webp 480w, /assets/banquete_gala_frente_al_mar-desktop.webp 840w',
+      sizes: '(max-width: 1024px) 92vw, 31vw',
+      width: 840,
+      height: 1120,
+    },
+    {
+      src: '/assets/cena_degustacion_5_tiempos-desktop.webp',
+      srcSet: '/assets/cena_degustacion_5_tiempos-mobile.webp 480w, /assets/cena_degustacion_5_tiempos-desktop.webp 840w',
+      sizes: '(max-width: 1024px) 92vw, 31vw',
+      width: 840,
+      height: 1120,
+    },
+    {
+      src: '/assets/IMG_1937.webp',
+      srcSet: '/assets/IMG_1937-mobile.webp 480w, /assets/IMG_1937.webp 683w',
+      sizes: '(max-width: 1024px) 92vw, 31vw',
+      width: 683,
+      height: 911,
+    },
   ];
 
   const signatureExperiences = t.experiences.items.slice(0, 3);
@@ -248,13 +267,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onOpenAI, onNav
           <picture>
             <source
               media="(max-width: 640px)"
-              srcSet="/assets/chef_franko_team_mobile.webp"
+              srcSet="/assets/chef_franko_team_mobile.webp 640w"
+              sizes="100vw"
               type="image/webp"
               width={640}
               height={451}
             />
             <img
               src="/assets/chef_franko_team.webp"
+              srcSet="/assets/chef_franko_team_mobile.webp 640w, /assets/chef_franko_team.webp 1024w"
+              sizes="100vw"
               alt="Chef Franko Salgado and his culinary team preparing a private dining experience in Puerto Vallarta"
               width={1024}
               height={722}
@@ -361,6 +383,149 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onOpenAI, onNav
           </div>
         </section>
 
+        {/* Coastal Destinations Banner (Punta Mita & Nuevo Nayarit) */}
+        <section
+          id="coastal-destinations"
+          aria-labelledby="coastal-destinations-heading"
+          className="border-b border-[#153f42]/10 bg-[#0d4145] px-6 py-16 text-white lg:px-12 lg:py-24"
+        >
+          <div className="mx-auto max-w-[1480px]">
+            <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+              <div className="max-w-3xl">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#9b1b30]/70 bg-white/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-white">
+                  <span className="h-2 w-2 rounded-full bg-[#c8233c]" aria-hidden="true" />
+                  <span>{lang === 'es' ? 'Destinos en Riviera Nayarit' : 'Riviera Nayarit Destinations'}</span>
+                </div>
+                <h2
+                  id="coastal-destinations-heading"
+                  className="mt-4 font-serif text-3xl font-light leading-[1.08] text-white sm:text-5xl"
+                >
+                  {lang === 'es'
+                    ? 'Experiencias de chef privado junto al mar'
+                    : 'Private Chef Experiences by the Coast'}
+                </h2>
+              </div>
+              <p className="max-w-md text-sm sm:text-base leading-7 text-[#d8ece9]">
+                {lang === 'es'
+                  ? 'Elige tu destino para conocer nuestros servicios de cenas privadas en villa, celebraciones íntimas y comidas familiares en la costa.'
+                  : 'Select your coastal destination to explore private villa dinners, intimate celebrations and family dining prepared at your residence.'}
+              </p>
+            </div>
+
+            <div className="mt-10 grid grid-cols-1 gap-7 lg:grid-cols-2">
+              {/* Card 1: Punta Mita */}
+              <a
+                href={puntaMitaPath}
+                onClick={event => go(event, puntaMitaPath)}
+                className="group flex flex-col overflow-hidden rounded-[2rem] bg-white text-[#102f33] shadow-[0_24px_60px_rgba(6,34,37,0.35)] ring-1 ring-white/20 transition duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <div className="relative h-64 sm:h-72 overflow-hidden bg-[#123f43]">
+                  <img
+                    src={DESTINATION_IMAGES.puntaMita.heroBeach.src}
+                    srcSet={DESTINATION_IMAGES.puntaMita.heroBeach.srcSet}
+                    sizes="(max-width: 1024px) 92vw, 46vw"
+                    alt={
+                      lang === 'es'
+                        ? DESTINATION_IMAGES.puntaMita.heroBeach.altEs
+                        : DESTINATION_IMAGES.puntaMita.heroBeach.altEn
+                    }
+                    width={DESTINATION_IMAGES.puntaMita.heroBeach.width}
+                    height={DESTINATION_IMAGES.puntaMita.heroBeach.height}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-[#102f33]/90 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white backdrop-blur-sm">
+                    <MapPin className="h-3.5 w-3.5 text-[#e04f63]" />
+                    <span>Punta Mita</span>
+                  </div>
+                </div>
+                <div className="flex flex-1 flex-col justify-between p-7 sm:p-8">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#9b1b30]">
+                      {lang === 'es'
+                        ? 'Cenas en Villa · Celebraciones Íntimas'
+                        : 'Private Villa Dinners · Intimate Celebrations'}
+                    </p>
+                    <h3 className="mt-2 font-serif text-3xl text-[#153f42] group-hover:text-[#0b6668] transition-colors">
+                      {lang === 'es' ? 'Chef Privado en Punta Mita' : 'Private Chef in Punta Mita'}
+                    </h3>
+                    <p className="mt-3 text-sm sm:text-base leading-7 text-[#375255]">
+                      {lang === 'es'
+                        ? 'Menús degustación personalizados, cenas románticas y celebraciones privadas en tu villa con compra de ingredientes, servicio en mesa y limpieza completa.'
+                        : 'Custom tasting menus, romantic evenings and intimate villa celebrations with ingredient sourcing, plated table service and full kitchen cleanup.'}
+                    </p>
+                  </div>
+                  <div className="mt-6 flex items-center justify-between border-t border-[#153f42]/10 pt-4">
+                    <span className="inline-flex items-center gap-2 text-sm font-bold text-[#0b6668] group-hover:text-[#9b1b30] transition-colors">
+                      <span>{lang === 'es' ? 'Explorar Punta Mita' : 'Explore Punta Mita'}</span>
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#4a6466]">
+                      Kupuri · Litibú · Península
+                    </span>
+                  </div>
+                </div>
+              </a>
+
+              {/* Card 2: Nuevo Nayarit */}
+              <a
+                href={nuevoNayaritPath}
+                onClick={event => go(event, nuevoNayaritPath)}
+                className="group flex flex-col overflow-hidden rounded-[2rem] bg-white text-[#102f33] shadow-[0_24px_60px_rgba(6,34,37,0.35)] ring-1 ring-white/20 transition duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <div className="relative h-64 sm:h-72 overflow-hidden bg-[#123f43]">
+                  <img
+                    src={DESTINATION_IMAGES.nuevoNayarit.heroBeach.src}
+                    srcSet={DESTINATION_IMAGES.nuevoNayarit.heroBeach.srcSet}
+                    sizes="(max-width: 1024px) 92vw, 46vw"
+                    alt={
+                      lang === 'es'
+                        ? DESTINATION_IMAGES.nuevoNayarit.heroBeach.altEs
+                        : DESTINATION_IMAGES.nuevoNayarit.heroBeach.altEn
+                    }
+                    width={DESTINATION_IMAGES.nuevoNayarit.heroBeach.width}
+                    height={DESTINATION_IMAGES.nuevoNayarit.heroBeach.height}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-[#102f33]/90 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white backdrop-blur-sm">
+                    <MapPin className="h-3.5 w-3.5 text-[#e04f63]" />
+                    <span>Nuevo Nayarit</span>
+                  </div>
+                </div>
+                <div className="flex flex-1 flex-col justify-between p-7 sm:p-8">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#9b1b30]">
+                      {lang === 'es'
+                        ? 'Comidas Familiares · Reuniones de Grupo'
+                        : 'Family Meals · Group & Vacation Dinners'}
+                    </p>
+                    <h3 className="mt-2 font-serif text-3xl text-[#153f42] group-hover:text-[#0b6668] transition-colors">
+                      {lang === 'es' ? 'Chef Privado en Nuevo Nayarit' : 'Private Chef in Nuevo Nayarit'}
+                    </h3>
+                    <p className="mt-3 text-sm sm:text-base leading-7 text-[#375255]">
+                      {lang === 'es'
+                        ? 'Comidas familiares, reuniones de amigos y cenas durante tus vacaciones preparadas en tu residencia o condominio, con compras del día, servicio y limpieza.'
+                        : 'Relaxed family meals, group gatherings and vacation dinners prepared at your residence or condo, complete with same-day shopping, table service and cleanup.'}
+                    </p>
+                  </div>
+                  <div className="mt-6 flex items-center justify-between border-t border-[#153f42]/10 pt-4">
+                    <span className="inline-flex items-center gap-2 text-sm font-bold text-[#0b6668] group-hover:text-[#9b1b30] transition-colors">
+                      <span>{lang === 'es' ? 'Explorar Nuevo Nayarit' : 'Explore Nuevo Nayarit'}</span>
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#4a6466]">
+                      Nuevo Vallarta · Flamingos · Bucerías
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </section>
+
         {/* Curated Experiences Showcase */}
         <section className="px-6 py-20 lg:px-12 lg:py-32">
           <div className="mx-auto max-w-[1480px]">
@@ -385,10 +550,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenQuote, onOpenAI, onNav
                 >
                   <div className="h-72 sm:h-80 overflow-hidden bg-[#dce5e2]">
                     <img
-                      src={experienceImages[index] || experienceImages[0]}
+                      src={(experienceImages[index] || experienceImages[0]).src}
+                      srcSet={(experienceImages[index] || experienceImages[0]).srcSet}
+                      sizes={(experienceImages[index] || experienceImages[0]).sizes}
                       alt={signatureImageAlts[index] || signatureImageAlts[0]}
-                      width={800}
-                      height={600}
+                      width={(experienceImages[index] || experienceImages[0]).width}
+                      height={(experienceImages[index] || experienceImages[0]).height}
                       loading="lazy"
                       decoding="async"
                       className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
