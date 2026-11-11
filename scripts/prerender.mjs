@@ -54,6 +54,51 @@ const routes = {
     description:
       'Request a tailored private chef proposal for your date, guest count and villa location in Riviera Nayarit.',
   },
+  '/es': {
+    title: 'Chef privado en Puerto Vallarta y Punta Mita | Chef Franko',
+    description:
+      'Cenas privadas, menús degustación y servicio de chef en villas de Puerto Vallarta, Punta Mita y Nuevo Nayarit. Solicita una propuesta personalizada.',
+  },
+  '/es/chef-privado-punta-mita': {
+    title: 'Chef privado en Punta Mita | Cenas en villa con Chef Franko',
+    description:
+      'Planea una cena privada en tu villa de Punta Mita con Chef Franko. Menús personalizados y coordinación del servicio según tu grupo y residencia.',
+  },
+  '/es/chef-privado-nuevo-nayarit': {
+    title: 'Chef privado en Nuevo Nayarit y Nuevo Vallarta | Chef Franko',
+    description:
+      'Cenas con chef privado para villas, departamentos y estancias familiares en Nuevo Nayarit o Nuevo Vallarta. Consulta menús y disponibilidad con Chef Franko.',
+  },
+  '/es/menu': {
+    title: 'Menús de chef privado | Chef4You by Franko',
+    description:
+      'Explora menús de chef privado y precios en pesos mexicanos para cenas en villa y celebraciones en Puerto Vallarta, Punta Mita y Nuevo Nayarit.',
+  },
+  '/es/galeria': {
+    title: 'Galería gastronómica | Chef4You by Franko',
+    description:
+      'Explora platillos, técnica culinaria y experiencias de cenas privadas del Chef Franko Salgado en Puerto Vallarta y Riviera Nayarit.',
+  },
+  '/es/experiencias': {
+    title: 'Experiencias de chef privado en Puerto Vallarta | Chef Franko',
+    description:
+      'Descubre cenas en villa, menúsdegustación y celebraciones con Chef Franko en Puerto Vallarta, Punta Mita y Nuevo Nayarit.',
+  },
+  '/es/chef-franko': {
+    title: 'Chef Franko Salgado | Chef privado en Puerto Vallarta',
+    description:
+      'Conoce al Chef Franko Salgado y su propuesta de cocina personalizada, ingredientes de temporada y hospitalidad en Puerto Vallarta y Riviera Nayarit.',
+  },
+  '/es/privacy': {
+    title: 'Aviso de Privacidad | Chef4You by Franko',
+    description:
+      'Información sobre datos personales, canales de contacto y solicitudes de privacidad de Chef4You by Franko Salgado. Aviso en revisión legal.',
+  },
+  '/es/reservar': {
+    title: 'Reserva un chef privado en Puerto Vallarta | Chef Franko',
+    description:
+      'Comparte fecha, número de invitados, ubicación y preferencias para solicitar una propuesta de chef privado en Puerto Vallarta, Punta Mita o Nuevo Nayarit.',
+  },
 };
 
 function replaceMeta(html, route, meta) {
