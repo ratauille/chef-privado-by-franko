@@ -148,6 +148,10 @@
         "destination": "/ai-catalog.json"
       },
       {
+        "source": "/es",
+        "destination": "/index.html"
+      },
+      {
         "source": "/admin",
         "destination": "/index.html"
       },
